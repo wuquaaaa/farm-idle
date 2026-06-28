@@ -8,16 +8,29 @@ interface Props {
   dispatch: (type: string, payload?: unknown) => void;
 }
 
+/** 当前可研究：未解锁，且前置科技已满足 */
+function isAvailable(tech: TechDef, state: GameState): boolean {
+  const unlocked = state.techs[tech.id as keyof GameState['techs']]?.unlocked ?? false;
+  if (unlocked) return false;
+  return !tech.requires
+    || tech.requires.every((r) => state.techs[r as keyof GameState['techs']]?.unlocked);
+}
+
 export function TechView({ state, dispatch }: Props) {
+  const visible = Object.values(TECHS).filter((t) => isAvailable(t, state));
+
+  if (visible.length === 0) {
+    return (
+      <div className="text-center text-stone-400 text-sm py-10">
+        暂无可研究的科技
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
-      {Object.values(TECHS).map((tech) => (
-        <TechCard
-          key={tech.id}
-          tech={tech}
-          state={state}
-          dispatch={dispatch}
-        />
+      {visible.map((tech) => (
+        <TechCard key={tech.id} tech={tech} state={state} dispatch={dispatch} />
       ))}
     </div>
   );
@@ -28,17 +41,11 @@ function TechCard({ tech, state, dispatch }: {
   state: GameState;
   dispatch: (type: string, payload?: unknown) => void;
 }) {
-  const isUnlocked = state.techs[tech.id as keyof GameState['techs']]?.unlocked ?? false;
   const canBuy = canUnlockTech(tech, state);
 
   return (
     <div className={`bg-white rounded-xl shadow-sm border p-4 transition-all
-      ${isUnlocked
-        ? 'border-farm-200 bg-farm-50/50'
-        : canBuy
-          ? 'border-stone-200 hover:border-amber-300 cursor-pointer'
-          : 'border-stone-200 opacity-60'
-      }`}
+      ${canBuy ? 'border-stone-200 hover:border-amber-300' : 'border-stone-200 opacity-70'}`}
     >
       <div className="flex items-start justify-between mb-2">
         <div>
@@ -48,17 +55,11 @@ function TechCard({ tech, state, dispatch }: {
           </h3>
           <p className="text-xs text-stone-400 mt-0.5">{tech.description}</p>
         </div>
-        {isUnlocked ? (
-          <span className="text-xs bg-farm-100 text-farm-700 px-2 py-0.5 rounded-full font-medium">
-            已解锁
-          </span>
-        ) : (
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium
-            ${canBuy ? 'bg-amber-100 text-amber-700' : 'bg-stone-100 text-stone-400'}`}
-          >
-            未解锁
-          </span>
-        )}
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium
+          ${canBuy ? 'bg-amber-100 text-amber-700' : 'bg-stone-100 text-stone-400'}`}
+        >
+          {canBuy ? '可研究' : '资源不足'}
+        </span>
       </div>
 
       {/* 效果描述 */}
@@ -70,33 +71,23 @@ function TechCard({ tech, state, dispatch }: {
         ))}
       </div>
 
-      {/* 前置条件 */}
-      {tech.requires && !isUnlocked && (
-        <div className="text-xs text-stone-300 mb-2">
-          前置：{tech.requires.map(r => TECHS[r]?.name ?? r).join('、')}
-        </div>
-      )}
-
-      {/* 解锁按钮 */}
-      {!isUnlocked && (
-        <button
-          onClick={() => dispatch(ActionTypes.UNLOCK_TECH, { techId: tech.id })}
-          disabled={!canBuy}
-          className={`w-full py-1.5 rounded-lg text-xs font-medium transition-all
-            ${canBuy
-              ? 'bg-amber-500 text-white hover:bg-amber-600 active:scale-[0.98]'
-              : 'bg-stone-100 text-stone-400 cursor-not-allowed'
-            }`}
-        >
-          研究 —{' '}
-          {Object.entries(tech.cost).map(([res, amount], i) => (
-            <span key={res}>
-              {i > 0 ? ' + ' : ''}
-              {amount.toFixed(0)} {getResourceName(res)}
-            </span>
-          ))}
-        </button>
-      )}
+      <button
+        onClick={() => dispatch(ActionTypes.UNLOCK_TECH, { techId: tech.id })}
+        disabled={!canBuy}
+        className={`w-full py-1.5 rounded-lg text-xs font-medium transition-all
+          ${canBuy
+            ? 'bg-amber-500 text-white hover:bg-amber-600 active:scale-[0.98]'
+            : 'bg-stone-100 text-stone-400 cursor-not-allowed'
+          }`}
+      >
+        研究 —{' '}
+        {Object.entries(tech.cost).map(([res, amount], i) => (
+          <span key={res}>
+            {i > 0 ? ' + ' : ''}
+            {amount.toFixed(0)} {getResourceName(res)}
+          </span>
+        ))}
+      </button>
     </div>
   );
 }

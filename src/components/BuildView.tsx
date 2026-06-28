@@ -9,9 +9,14 @@ interface Props {
 }
 
 export function BuildView({ state, dispatch }: Props) {
+  // 前置科技未满足的建筑直接隐藏
+  const visible = Object.values(BUILDINGS).filter((b) =>
+    !b.requires || b.requires.every((techId) => state.techs[techId as keyof GameState['techs']]?.unlocked)
+  );
+
   return (
     <div className="space-y-3">
-      {Object.values(BUILDINGS).map((building) => (
+      {visible.map((building) => (
         <BuildingCard
           key={building.id}
           building={building}
@@ -30,27 +35,6 @@ function BuildingCard({ building, state, dispatch }: {
 }) {
   const owned = state.buildings[building.id as keyof GameState['buildings']]?.count ?? 0;
 
-  // 检查是否已解锁
-  const isUnlocked = !building.requires
-    || building.requires.every(techId => {
-      const techKey = techId as keyof GameState['techs'];
-      return state.techs[techKey]?.unlocked;
-    });
-
-  if (!isUnlocked) {
-    return (
-      <div className="bg-stone-50 rounded-xl border border-stone-200 p-4 opacity-50">
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <h3 className="font-medium text-stone-400">{building.icon} {building.name}</h3>
-            <div className="text-xs text-stone-300 mt-0.5">🔒 需要解锁前置科技</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 计算当前价格
   const cost = getBuildingCost(building, owned);
   const canAfford = Object.entries(cost).every(
     ([res, amount]) => (state.resources[res as keyof GameState['resources']]?.amount ?? 0) >= amount

@@ -1,4 +1,5 @@
 import type { GameState } from '../core/state';
+import { TECHS } from '../data/techs';
 
 interface Props {
   tabs: readonly string[];
@@ -17,8 +18,14 @@ const LABELS: Record<string, { label: string; icon: string }> = {
 export function TabNav({ tabs, active, onChange, state }: Props) {
   const badge = (tab: string) => {
     if (tab === 'tech') {
-      const unlockable = Object.values(state.techs).filter(t => !t.unlocked).length;
-      return unlockable > 0 ? unlockable : null;
+      // 仅统计「当前可研究」的科技（未解锁且前置已满足）
+      const available = Object.values(TECHS).filter((t) => {
+        const unlocked = state.techs[t.id as keyof GameState['techs']]?.unlocked ?? false;
+        if (unlocked) return false;
+        return !t.requires
+          || t.requires.every((r) => state.techs[r as keyof GameState['techs']]?.unlocked);
+      }).length;
+      return available > 0 ? available : null;
     }
     return null;
   };
