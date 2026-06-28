@@ -1,0 +1,88 @@
+import type { GameState } from '../core/state';
+
+interface Props { state: GameState }
+
+interface RowDef {
+  key: keyof GameState['resources'];
+  icon: string;
+  label: string;
+  maxKey?: string;
+}
+
+const ROWS: RowDef[] = [
+  { key: 'grain', icon: '🌾', label: '粮食', maxKey: 'grain' },
+  { key: 'wood',  icon: '🪵', label: '木头', maxKey: 'wood' },
+  { key: 'gold',  icon: '💰', label: '金币' },
+];
+
+export function ResourcePanel({ state }: Props) {
+  const { resources, buildings, workers } = state;
+
+  // 储存上限
+  const grainMax = 1000 + (buildings.granary?.count ?? 0) * 500;
+  const woodMax = 100;
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4 text-sm">
+      {ROWS.map(({ key, icon, label, maxKey }) => {
+        const res = resources[key];
+        const perSec = res.perSecond;
+        const max = maxKey === 'grain' ? grainMax : maxKey === 'wood' ? woodMax : undefined;
+
+        return (
+          <div key={key} className="mb-3 last:mb-0">
+            <div className="flex items-center justify-between">
+              <span className="text-stone-500 text-xs">{icon} {label}</span>
+              <span className="font-semibold text-stone-800">{fmt(res.amount)}</span>
+            </div>
+            {max !== undefined && (
+              <div className="w-full h-1 bg-stone-100 rounded-full mt-1 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{
+                    width: `${Math.min(100, (res.amount / max) * 100)}%`,
+                    backgroundColor: res.amount / max > 0.9 ? '#ef4444' : '#22c55e',
+                  }}
+                />
+              </div>
+            )}
+            <div className="flex justify-between text-xs mt-0.5">
+              <span className={perSec >= 0 ? 'text-stone-400' : 'text-red-400'}>
+                {perSec > 0 ? '+' : ''}{fmt(perSec)}/s
+              </span>
+              {max !== undefined && (
+                <span className="text-stone-300">{fmt(max)}</span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* 帮工信息 */}
+      <div className="border-t border-stone-100 pt-3 mt-1">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-stone-500">👨‍🌾 帮工</span>
+          <span className="font-semibold text-stone-800">
+            {workers.count}/{buildings.hut?.count ?? 0}
+          </span>
+        </div>
+        <div className="text-xs text-stone-400 mt-0.5">
+          空余 {workers.count - workers.allocatedFarmland - workers.allocatedLumber} · 
+          农田 {workers.allocatedFarmland} · 伐木 {workers.allocatedLumber}
+        </div>
+        {workers.count > 0 && (
+          <div className="text-xs text-red-400 mt-0.5">
+            消耗 {(workers.count * workers.foodPerSec).toFixed(1)} 🌾/s
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function fmt(n: number): string {
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e4) return (n / 1e3).toFixed(1) + 'K';
+  if (n >= 100) return Math.floor(n).toString();
+  return n.toFixed(1);
+}

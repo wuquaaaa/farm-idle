@@ -10,6 +10,7 @@ import { WorkerSystem } from './core/systems/workerSystem';
 import { SaveManager } from './core/saveManager';
 import { TabNav } from './components/TabNav';
 import { ResourceBar } from './components/ResourceBar';
+import { ResourcePanel } from './components/ResourcePanel';
 import { ProductionView } from './components/ProductionView';
 import { BuildView } from './components/BuildView';
 import { TechView } from './components/TechView';
@@ -59,14 +60,22 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">
-      <ResourceBar state={state} />
       <TabNav tabs={TABS as unknown as string[]} active={tab} onChange={setTab} state={state} />
-      <div className="flex-1 p-4 max-w-md mx-auto w-full pb-24">
-        {tab === 'production' && <ProductionView state={state} dispatch={dispatch} />}
-        {tab === 'build' && <BuildView state={state} dispatch={dispatch} />}
-        {tab === 'tech' && <TechView state={state} dispatch={dispatch} />}
-        {tab === 'market' && <MarketView state={state} dispatch={dispatch} />}
-        {tab === 'worker' && <WorkerView state={state} dispatch={dispatch} />}
+      {/* 移动端顶部资源条 */}
+      <div className="md:hidden"><ResourceBar state={state} /></div>
+      <div className="flex-1 flex max-w-4xl mx-auto w-full">
+        <div className="flex-1 p-4 pb-24 min-w-0">
+          {tab === 'production' && <ProductionView state={state} dispatch={dispatch} />}
+          {tab === 'build' && <BuildView state={state} dispatch={dispatch} />}
+          {tab === 'tech' && <TechView state={state} dispatch={dispatch} />}
+          {tab === 'market' && <MarketView state={state} dispatch={dispatch} />}
+          {tab === 'worker' && <WorkerView state={state} dispatch={dispatch} />}
+        </div>
+        <div className="w-44 flex-shrink-0 p-4 pt-4 hidden md:block">
+          <div className="sticky top-16">
+            <ResourcePanel state={state} />
+          </div>
+        </div>
       </div>
     </div>
   );
