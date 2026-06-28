@@ -5,14 +5,11 @@ interface Props { state: GameState }
 const DISPLAY: { key: keyof GameState['resources']; icon: string; always?: boolean }[] = [
   { key: 'grain', icon: '🌾', always: true },
   { key: 'wood',  icon: '🪵', always: true },
-  { key: 'gold',  icon: '💰', always: true },
-  { key: 'water', icon: '💧' },
-  { key: 'rice',  icon: '🍚' },
-  { key: 'wine',  icon: '🍶' },
+  { key: 'paper', icon: '📄' },
+  { key: 'books', icon: '📚' },
 ];
 
 export function ResourceBar({ state }: Props) {
-  // 加工资源仅在已获得过后显示，避免早期信息过载
   const visible = DISPLAY.filter(({ key, always }) => {
     if (always) return true;
     const res = state.resources[key];

@@ -115,11 +115,9 @@ function getBuildingCost(def: BuildingDef, owned: number): Record<string, number
 function getResourceName(id: string): string {
   const names: Record<string, string> = {
     grain: '🌾',
-    gold: '💰',
     wood: '🪵',
-    water: '💧',
-    rice: '🍚',
-    wine: '🍶',
+    paper: '📄',
+    books: '📚',
   };
   return names[id] ?? id;
 }

@@ -10,7 +10,6 @@ import { ActionTypes } from './systems/types';
 import type { ResourceSystem } from './systems/resourceSystem';
 import type { BuildingSystem } from './systems/buildingSystem';
 import type { TechSystem } from './systems/techSystem';
-import type { MarketSystem } from './systems/marketSystem';
 import type { WorkerSystem } from './systems/workerSystem';
 import { SaveManager } from './saveManager';
 
@@ -87,22 +86,6 @@ export class GameEngine {
       }
       case ActionTypes.UNLOCK_TECH: {
         this.findSystem<TechSystem>('tech')!.unlockTech(this.state, payload?.techId as string);
-        break;
-      }
-      case ActionTypes.SELL_GRAIN: {
-        this.findSystem<MarketSystem>('market')!.sellGrain(this.state, payload?.amount as number);
-        break;
-      }
-      case ActionTypes.SELL_ALL_GRAIN: {
-        this.findSystem<MarketSystem>('market')!.sellAllGrain(this.state);
-        break;
-      }
-      case ActionTypes.SELL_RESOURCE: {
-        this.findSystem<MarketSystem>('market')!.sellResource(
-          this.state,
-          payload?.resourceId as string,
-          payload?.amount as number
-        );
         break;
       }
       case ActionTypes.HIRE_WORKER: {

@@ -10,15 +10,13 @@ interface Props {
 
 const LABELS: Record<string, { label: string; icon: string }> = {
   production: { label: '田园', icon: '🏡' },
-  tech:       { label: '科技', icon: '📚' },
-  market:     { label: '市集', icon: '💰' },
+  tech:       { label: '学问', icon: '📚' },
   worker:     { label: '帮工', icon: '👨‍🌾' },
 };
 
 export function TabNav({ tabs, active, onChange, state }: Props) {
   const badge = (tab: string) => {
     if (tab === 'tech') {
-      // 仅统计「当前可研究」的科技（未解锁且前置已满足）
       const available = Object.values(TECHS).filter((t) => {
         const unlocked = state.techs[t.id as keyof GameState['techs']]?.unlocked ?? false;
         if (unlocked) return false;

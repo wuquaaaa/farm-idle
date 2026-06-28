@@ -10,8 +10,7 @@ const SAVE_KEY = 'farm_idle_save';
 export class SaveManager {
   save(state: GameState): void {
     try {
-      const data = JSON.stringify(state);
-      localStorage.setItem(SAVE_KEY, data);
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
     } catch (e) {
       console.warn('存档失败：', e);
     }
@@ -21,8 +20,7 @@ export class SaveManager {
     try {
       const data = localStorage.getItem(SAVE_KEY);
       if (!data) return null;
-      const parsed = JSON.parse(data) as Partial<GameState>;
-      return migrate(parsed);
+      return migrate(JSON.parse(data) as Partial<GameState>);
     } catch (e) {
       console.warn('读档失败：', e);
       return null;
@@ -33,13 +31,10 @@ export class SaveManager {
     localStorage.removeItem(SAVE_KEY);
   }
 
-  /** 导出存档字符串（用于手动备份） */
   export(): string {
-    const data = localStorage.getItem(SAVE_KEY);
-    return data ?? '';
+    return localStorage.getItem(SAVE_KEY) ?? '';
   }
 
-  /** 导入存档字符串 */
   import(data: string): boolean {
     try {
       const state = JSON.parse(data);
@@ -53,22 +48,20 @@ export class SaveManager {
 }
 
 /**
- * 存档迁移：把旧存档合并进当前初始结构，补齐新增的资源/建筑/科技/历法字段，
- * 保留玩家已有进度。新增分组字段时在此补一行浅合并即可。
+ * 存档迁移：把旧存档合并进当前初始结构，补齐新增字段，保留已有进度。
+ * 经济模型大改（去金币/市集，改造纸循环）后，旧档的废弃字段会被忽略。
  */
 function migrate(saved: Partial<GameState>): GameState {
   const base = createInitialState();
-  const merged: GameState = {
+  return {
     ...base,
     ...saved,
     version: base.version,
     resources: { ...base.resources, ...(saved.resources ?? {}) },
     buildings: { ...base.buildings, ...(saved.buildings ?? {}) },
     techs: { ...base.techs, ...(saved.techs ?? {}) },
-    market: { ...base.market, ...(saved.market ?? {}) },
     workers: { ...base.workers, ...(saved.workers ?? {}) },
     calendar: { ...base.calendar, ...(saved.calendar ?? {}) },
     stats: { ...base.stats, ...(saved.stats ?? {}) },
   };
-  return merged;
 }

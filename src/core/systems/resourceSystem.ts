@@ -1,5 +1,5 @@
 // ============================================================
-// ResourceSystem — 管理资源增减、储存上限、产量计算
+// ResourceSystem — 资源增减、储存上限、点击收获
 // ============================================================
 
 import type { GameState } from '../state';
@@ -10,7 +10,6 @@ import { getTechMultiplier } from '../../data/techs';
 
 const BASE_GRAIN_STORAGE = 1000;
 const GRANARY_STORAGE = 500;
-const BASE_WOOD_STORAGE = 100;
 
 export class ResourceSystem implements GameSystem {
   id = 'resource';
@@ -70,17 +69,12 @@ export class ResourceSystem implements GameSystem {
 
   getMaxStorage(state: GameState, resourceId: string): number {
     if (resourceId === 'grain') {
-      let storage = BASE_GRAIN_STORAGE;
-      storage += (state.buildings.granary?.count ?? 0) * GRANARY_STORAGE;
-      return storage;
+      return BASE_GRAIN_STORAGE + (state.buildings.granary?.count ?? 0) * GRANARY_STORAGE;
     }
-    if (resourceId === 'wood') return BASE_WOOD_STORAGE;
     return Infinity;
   }
 
   getClickValue(state: GameState): number {
-    const base = 1;
-    const multiplier = getTechMultiplier(state, 'multiply_click', 'grain');
-    return base * multiplier;
+    return 1 * getTechMultiplier(state, 'multiply_click', 'grain');
   }
 }

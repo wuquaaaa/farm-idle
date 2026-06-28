@@ -1,5 +1,5 @@
 // ============================================================
-// 资源定义
+// 资源定义 —— 农耕造纸循环：粮食 / 木材 / 纸 / 书籍
 // ============================================================
 
 export interface ResourceDef {
@@ -14,37 +14,24 @@ export const RESOURCES: Record<string, ResourceDef> = {
     id: 'grain',
     name: '粮食',
     icon: '🌾',
-    description: '农田产出，可供帮工食用或砍树换木头',
-  },
-  gold: {
-    id: 'gold',
-    name: '金币',
-    icon: '💰',
-    description: '用于解锁科技、招募帮工',
+    description: '农田产出，供帮工食用、建造与开垦之本',
   },
   wood: {
     id: 'wood',
-    name: '木头',
+    name: '木材',
     icon: '🪵',
-    description: '砍树获得，用于建造小屋',
+    description: '林场或砍树获得，建造与造纸所需',
   },
-  // —— 加工链：清水 / 精米 / 米酒 ——
-  water: {
-    id: 'water',
-    name: '清水',
-    icon: '💧',
-    description: '水井汲取，酿酒与加工所需',
+  paper: {
+    id: 'paper',
+    name: '纸',
+    icon: '📄',
+    description: '造纸坊以木材抄造，用于研究基础学问',
   },
-  rice: {
-    id: 'rice',
-    name: '精米',
-    icon: '🍚',
-    description: '碾房将稻谷碾成精米，可酿酒',
-  },
-  wine: {
-    id: 'wine',
-    name: '米酒',
-    icon: '🍶',
-    description: '酒坊以精米与清水酿造，市集高价收购',
+  books: {
+    id: 'books',
+    name: '书籍',
+    icon: '📚',
+    description: '书坊以纸张印制，用于研究高深学问',
   },
 };

@@ -1,6 +1,6 @@
 // ============================================================
-// 科技定义 — 静态数据，定义科技树
-// 加新科技只需在这里加一项
+// 科技定义 —— 农耕学问树
+//   基础学问消耗「纸」，高深学问消耗「书籍」
 // ============================================================
 
 import type { GameState } from '../core/state';
@@ -13,8 +13,8 @@ export type TechEffectType =
 
 export interface TechEffect {
   type: TechEffectType;
-  target: string;       // 资源/建筑 ID
-  multiplier?: number;  // 倍率
+  target: string;
+  multiplier?: number;
 }
 
 export interface TechDef {
@@ -22,68 +22,72 @@ export interface TechDef {
   name: string;
   description: string;
   icon: string;
-  /** 解锁花费 */
   cost: Record<string, number>;
-  /** 前置科技 */
   requires?: string[];
-  /** 科技效果 */
   effects: TechEffect[];
 }
 
 export const TECHS: Record<string, TechDef> = {
+  // —— 基础学问：消耗纸 ——
+  improvedSeeds: {
+    id: 'improvedSeeds',
+    name: '良种培育',
+    description: '选育良种，每次收获翻倍',
+    icon: '🌿',
+    cost: { paper: 15 },
+    effects: [{ type: 'multiply_click', target: 'grain', multiplier: 2 }],
+  },
   cropRotation: {
     id: 'cropRotation',
     name: '轮作法',
-    description: '不同作物轮替种植，农田产量 ×2',
+    description: '轮替耕种，农田产量 ×2',
     icon: '🔄',
-    cost: { gold: 20 },
+    cost: { paper: 20 },
     effects: [{ type: 'multiply_production', target: 'farmland', multiplier: 2 }],
+  },
+  sharpAxe: {
+    id: 'sharpAxe',
+    name: '利斧',
+    description: '锻造利斧，林场产量 ×2',
+    icon: '🪓',
+    cost: { paper: 30 },
+    effects: [{ type: 'multiply_production', target: 'woodcamp', multiplier: 2 }],
   },
   irrigation: {
     id: 'irrigation',
     name: '灌溉术',
     description: '引水灌田，农田产量再 ×2',
     icon: '💧',
-    cost: { gold: 80 },
+    cost: { paper: 50 },
     requires: ['cropRotation'],
     effects: [{ type: 'multiply_production', target: 'farmland', multiplier: 2 }],
   },
-  fineMilling: {
-    id: 'fineMilling',
-    name: '精磨法',
-    description: '改良磨盘，磨坊产量 ×2',
-    icon: '⚙️',
-    cost: { gold: 60 },
-    effects: [{ type: 'multiply_production', target: 'mill', multiplier: 2 }],
+  printing: {
+    id: 'printing',
+    name: '印刷术',
+    description: '雕版印刷，解锁书坊，纸可印制成书籍',
+    icon: '📚',
+    cost: { paper: 80 },
+    effects: [{ type: 'unlock_building', target: 'bookbindery' }],
   },
-  improvedSeeds: {
-    id: 'improvedSeeds',
-    name: '良种培育',
-    description: '选育优良种子，点击收获翻倍',
-    icon: '🌿',
-    cost: { gold: 40 },
-    effects: [{ type: 'multiply_click', target: 'grain', multiplier: 2 }],
+  // —— 高深学问：消耗书籍 ——
+  intensiveFarming: {
+    id: 'intensiveFarming',
+    name: '精耕细作',
+    description: '集约耕作，农田产量再 ×2',
+    icon: '🌾',
+    cost: { books: 10 },
+    requires: ['irrigation', 'printing'],
+    effects: [{ type: 'multiply_production', target: 'farmland', multiplier: 2 }],
   },
-  bigGranary: {
-    id: 'bigGranary',
-    name: '大粮仓',
-    description: '解锁粮仓建筑，可扩大粮食储存上限',
-    icon: '🏛️',
-    cost: { gold: 120 },
-    requires: ['irrigation'],
-    effects: [{ type: 'unlock_building', target: 'granary' }],
-  },
-  brewing: {
-    id: 'brewing',
-    name: '酿造',
-    description: '开启加工链：解锁 水井、碾房、酒坊，稻谷可酿成米酒高价卖出',
-    icon: '🍶',
-    cost: { gold: 100 },
-    effects: [
-      { type: 'unlock_building', target: 'well' },
-      { type: 'unlock_building', target: 'millhouse' },
-      { type: 'unlock_building', target: 'winery' },
-    ],
+  paperCraft: {
+    id: 'paperCraft',
+    name: '造纸改良',
+    description: '改良工艺，造纸坊产量 ×2',
+    icon: '📜',
+    cost: { books: 12 },
+    requires: ['printing'],
+    effects: [{ type: 'multiply_production', target: 'papermill', multiplier: 2 }],
   },
 };
 
@@ -107,19 +111,13 @@ export function getTechMultiplier(
 }
 
 /** 检查是否可以解锁某科技 */
-export function canUnlockTech(
-  def: TechDef,
-  state: GameState
-): boolean {
-  // 已解锁
+export function canUnlockTech(def: TechDef, state: GameState): boolean {
   if (state.techs[def.id as keyof GameState['techs']]?.unlocked) return false;
-  // 前置科技
   if (def.requires) {
     for (const req of def.requires) {
       if (!state.techs[req as keyof GameState['techs']]?.unlocked) return false;
     }
   }
-  // 资源检查
   for (const [res, amount] of Object.entries(def.cost)) {
     const owned = state.resources[res as keyof GameState['resources']]?.amount ?? 0;
     if (owned < amount) return false;

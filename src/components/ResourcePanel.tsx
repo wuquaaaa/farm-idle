@@ -12,24 +12,21 @@ interface RowDef {
   key: keyof GameState['resources'];
   icon: string;
   label: string;
-  maxKey?: string;
+  hasMax?: boolean;       // grain 有储量上限
   always?: boolean;       // 始终显示；否则仅在已获得过时显示
 }
 
 const ROWS: RowDef[] = [
-  { key: 'grain', icon: '🌾', label: '粮食', maxKey: 'grain', always: true },
-  { key: 'wood',  icon: '🪵', label: '木头', maxKey: 'wood', always: true },
-  { key: 'gold',  icon: '💰', label: '金币', always: true },
-  { key: 'water', icon: '💧', label: '清水' },
-  { key: 'rice',  icon: '🍚', label: '精米' },
-  { key: 'wine',  icon: '🍶', label: '米酒' },
+  { key: 'grain', icon: '🌾', label: '粮食', hasMax: true, always: true },
+  { key: 'wood',  icon: '🪵', label: '木材', always: true },
+  { key: 'paper', icon: '📄', label: '纸' },
+  { key: 'books', icon: '📚', label: '书籍' },
 ];
 
 export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { resources, buildings, workers } = state;
   const grainMax = 1000 + (buildings.granary?.count ?? 0) * 500;
-  const woodMax = 100;
 
   const handleExport = () => {
     const data = JSON.stringify(state);
@@ -65,10 +62,10 @@ export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
         if (always) return true;
         const r = resources[key];
         return r && (r.amount > 0 || r.totalEarned > 0);
-      }).map(({ key, icon, label, maxKey }) => {
+      }).map(({ key, icon, label, hasMax }) => {
         const res = resources[key];
         const perSec = res.perSecond;
-        const max = maxKey === 'grain' ? grainMax : maxKey === 'wood' ? woodMax : undefined;
+        const max = hasMax ? grainMax : undefined;
 
         return (
           <div key={key} className="mb-3 last:mb-0">

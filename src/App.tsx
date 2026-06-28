@@ -6,7 +6,6 @@ import { ResourceSystem } from './core/systems/resourceSystem';
 import { CalendarSystem } from './core/systems/calendarSystem';
 import { BuildingSystem } from './core/systems/buildingSystem';
 import { TechSystem } from './core/systems/techSystem';
-import { MarketSystem } from './core/systems/marketSystem';
 import { WorkerSystem } from './core/systems/workerSystem';
 import { SaveManager } from './core/saveManager';
 import { TabNav } from './components/TabNav';
@@ -14,10 +13,9 @@ import { ResourceBar } from './components/ResourceBar';
 import { ResourcePanel } from './components/ResourcePanel';
 import { ProductionView } from './components/ProductionView';
 import { TechView } from './components/TechView';
-import { MarketView } from './components/MarketView';
 import { WorkerView } from './components/WorkerView';
 
-const TABS = ['production', 'tech', 'market', 'worker'] as const;
+const TABS = ['production', 'tech', 'worker'] as const;
 type TabId = (typeof TABS)[number];
 
 export function App() {
@@ -33,11 +31,10 @@ export function App() {
     const calendarSystem = new CalendarSystem();
     const buildingSystem = new BuildingSystem(resourceSystem);
     const techSystem = new TechSystem(resourceSystem);
-    const marketSystem = new MarketSystem(resourceSystem);
     const workerSystem = new WorkerSystem(resourceSystem);
 
     const engine = new GameEngine(
-      [resourceSystem, calendarSystem, buildingSystem, techSystem, marketSystem, workerSystem],
+      [resourceSystem, calendarSystem, buildingSystem, techSystem, workerSystem],
       savedState
     );
 
@@ -81,7 +78,6 @@ export function App() {
         <div className="flex-1 p-4 pb-24 min-w-0">
           {tab === 'production' && <ProductionView state={state} dispatch={dispatch} />}
           {tab === 'tech' && <TechView state={state} dispatch={dispatch} />}
-          {tab === 'market' && <MarketView state={state} dispatch={dispatch} />}
           {tab === 'worker' && <WorkerView state={state} dispatch={dispatch} />}
         </div>
         <div className="w-44 flex-shrink-0 p-4 pt-4 hidden md:block">

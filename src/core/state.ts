@@ -1,5 +1,5 @@
 // ============================================================
-// GameState — 单一数据源，所有系统的状态都集中在这里
+// GameState — 单一数据源（农耕造纸循环）
 // 直接序列化为 JSON，不做任何转换
 // ============================================================
 
@@ -17,46 +17,38 @@ export interface TechState {
   unlocked: boolean;
 }
 
-export interface MarketState {
-  sellRate: number;
-  totalSold: number;
-}
-
 export interface Calendar {
   totalDays: number;           // 累计天数（浮点），节气/年份由此推导
 }
 
 export interface Resources {
   grain: ResourceState;
-  gold: ResourceState;
   wood: ResourceState;
-  water: ResourceState;        // 清水（加工链）
-  rice: ResourceState;         // 精米（加工链）
-  wine: ResourceState;         // 米酒（加工链成品）
+  paper: ResourceState;        // 纸：造纸坊产，研究基础科技
+  books: ResourceState;        // 书籍：书坊产，研究高深科技
 }
 
 export interface Buildings {
   farmland: BuildingState;
-  mill: BuildingState;
-  granary: BuildingState;
-  hut: BuildingState;
-  well: BuildingState;         // 水井：产清水
-  millhouse: BuildingState;    // 碾房：稻谷→精米
-  winery: BuildingState;       // 酒坊：精米+清水→米酒
+  woodcamp: BuildingState;     // 林场：产木材
+  papermill: BuildingState;    // 造纸坊：木材→纸
+  bookbindery: BuildingState;  // 书坊：纸→书籍
+  granary: BuildingState;      // 粮仓：扩粮食储量
+  hut: BuildingState;          // 小屋：帮工空位
 }
 
 export interface Techs {
-  cropRotation: TechState;
-  irrigation: TechState;
-  fineMilling: TechState;
-  bigGranary: TechState;
   improvedSeeds: TechState;
-  brewing: TechState;          // 酿造：开启加工链
+  cropRotation: TechState;
+  sharpAxe: TechState;
+  irrigation: TechState;
+  printing: TechState;         // 印刷术：解锁书坊
+  intensiveFarming: TechState;
+  paperCraft: TechState;
 }
 
 export interface Stats {
   totalClicks: number;
-  totalGrainSold: number;
   totalChops: number;
   playTimeMs: number;
   lastSavedAt: number;
@@ -75,7 +67,6 @@ export interface GameState {
   resources: Resources;
   buildings: Buildings;
   techs: Techs;
-  market: MarketState;
   workers: Workers;
   calendar: Calendar;
   stats: Stats;
@@ -83,35 +74,29 @@ export interface GameState {
 
 export function createInitialState(): GameState {
   return {
-    version: 4,
+    version: 5,
     resources: {
       grain: { amount: 0, totalEarned: 0, perSecond: 0 },
-      gold: { amount: 0, totalEarned: 0, perSecond: 0 },
       wood: { amount: 0, totalEarned: 0, perSecond: 0 },
-      water: { amount: 0, totalEarned: 0, perSecond: 0 },
-      rice: { amount: 0, totalEarned: 0, perSecond: 0 },
-      wine: { amount: 0, totalEarned: 0, perSecond: 0 },
+      paper: { amount: 0, totalEarned: 0, perSecond: 0 },
+      books: { amount: 0, totalEarned: 0, perSecond: 0 },
     },
     buildings: {
       farmland: { count: 0 },
-      mill: { count: 0 },
+      woodcamp: { count: 0 },
+      papermill: { count: 0 },
+      bookbindery: { count: 0 },
       granary: { count: 0 },
       hut: { count: 0 },
-      well: { count: 0 },
-      millhouse: { count: 0 },
-      winery: { count: 0 },
     },
     techs: {
-      cropRotation: { unlocked: false },
-      irrigation: { unlocked: false },
-      fineMilling: { unlocked: false },
-      bigGranary: { unlocked: false },
       improvedSeeds: { unlocked: false },
-      brewing: { unlocked: false },
-    },
-    market: {
-      sellRate: 0.2,
-      totalSold: 0,
+      cropRotation: { unlocked: false },
+      sharpAxe: { unlocked: false },
+      irrigation: { unlocked: false },
+      printing: { unlocked: false },
+      intensiveFarming: { unlocked: false },
+      paperCraft: { unlocked: false },
     },
     workers: {
       count: 0,
@@ -124,7 +109,6 @@ export function createInitialState(): GameState {
     },
     stats: {
       totalClicks: 0,
-      totalGrainSold: 0,
       totalChops: 0,
       playTimeMs: 0,
       lastSavedAt: Date.now(),
