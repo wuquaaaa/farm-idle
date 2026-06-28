@@ -25,10 +25,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
+      # 删除 Windows 生成的 lock，让 npm 在 Linux 上重新解析平台原生二进制
+      # （规避 npm 可选依赖 bug 导致 rolldown/vite 原生绑定缺失、vite build 启动即崩）
       - name: Install dependencies
-        run: npm install
+        run: |
+          rm -f package-lock.json
+          npm install
 
       - name: Build
         run: npm run build
@@ -40,11 +43,4 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+  
