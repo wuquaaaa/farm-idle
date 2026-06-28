@@ -59,4 +59,17 @@ export const RESOURCES: Record<string, ResourceDef> = {
     icon: '🛠️',
     description: '铁匠铺打造，装备于农田林场增产，但会持续磨损',
   },
+  // —— 储量链 ——
+  clay: {
+    id: 'clay',
+    name: '黏土',
+    icon: '🟤',
+    description: '取土场挖取，烧陶的原料',
+  },
+  pottery: {
+    id: 'pottery',
+    name: '陶器',
+    icon: '🏺',
+    description: '陶窑以黏土配木炭烧制，用于营建仓廪、扩大储量',
+  },
 };

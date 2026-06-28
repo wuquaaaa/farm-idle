@@ -29,6 +29,8 @@ export interface Resources {
   ore: ResourceState;          // 铁矿
   iron: ResourceState;         // 生铁
   tools: ResourceState;        // 农具（装备增产，磨损消耗）
+  clay: ResourceState;         // 黏土
+  pottery: ResourceState;      // 陶器（营建仓廪）
 }
 
 export interface Buildings {
@@ -40,6 +42,9 @@ export interface Buildings {
   mine: BuildingState;         // 矿场：→铁矿
   ironfurnace: BuildingState;  // 冶铁炉：矿+炭→生铁
   smithy: BuildingState;       // 铁匠铺：生铁→农具
+  claypit: BuildingState;      // 取土场：→黏土
+  potterykiln: BuildingState;  // 陶窑：黏土+炭→陶器
+  warehouse: BuildingState;    // 仓：陶器→扩储量
   granary: BuildingState;
   hut: BuildingState;
 }
@@ -48,6 +53,7 @@ export interface Techs {
   improvedSeeds: TechState;
   cropRotation: TechState;
   sharpAxe: TechState;
+  ceramics: TechState;         // 陶冶术：开启储量链
   ironworking: TechState;      // 冶铁术：开启铁矿链
   irrigation: TechState;
   printing: TechState;
@@ -83,7 +89,7 @@ export interface GameState {
 
 export function createInitialState(): GameState {
   return {
-    version: 6,
+    version: 7,
     resources: {
       grain: { amount: 0, totalEarned: 0, perSecond: 0 },
       wood: { amount: 0, totalEarned: 0, perSecond: 0 },
@@ -93,6 +99,8 @@ export function createInitialState(): GameState {
       ore: { amount: 0, totalEarned: 0, perSecond: 0 },
       iron: { amount: 0, totalEarned: 0, perSecond: 0 },
       tools: { amount: 0, totalEarned: 0, perSecond: 0 },
+      clay: { amount: 0, totalEarned: 0, perSecond: 0 },
+      pottery: { amount: 0, totalEarned: 0, perSecond: 0 },
     },
     buildings: {
       farmland: { count: 0 },
@@ -103,6 +111,9 @@ export function createInitialState(): GameState {
       mine: { count: 0 },
       ironfurnace: { count: 0 },
       smithy: { count: 0 },
+      claypit: { count: 0 },
+      potterykiln: { count: 0 },
+      warehouse: { count: 0 },
       granary: { count: 0 },
       hut: { count: 0 },
     },
@@ -110,6 +121,7 @@ export function createInitialState(): GameState {
       improvedSeeds: { unlocked: false },
       cropRotation: { unlocked: false },
       sharpAxe: { unlocked: false },
+      ceramics: { unlocked: false },
       ironworking: { unlocked: false },
       irrigation: { unlocked: false },
       printing: { unlocked: false },

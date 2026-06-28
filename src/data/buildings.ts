@@ -108,6 +108,39 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     requires: ['ironworking'],
   },
 
+  // —— 储量链（研究「陶冶术」解锁）——
+  claypit: {
+    id: 'claypit',
+    name: '取土场',
+    description: '挖取黏土，每座每秒产出 0.25 黏土',
+    icon: '🪏',
+    baseCost: { grain: 60 },
+    costMultiplier: 1.18,
+    production: { clay: 0.25 },
+    requires: ['ceramics'],
+  },
+  potterykiln: {
+    id: 'potterykiln',
+    name: '陶窑',
+    description: '每秒耗 2 黏土 + 1 木炭，烧制 1 陶器',
+    icon: '🏺',
+    baseCost: { wood: 60 },
+    costMultiplier: 1.2,
+    consumes: { clay: 2, charcoal: 1 },
+    production: { pottery: 1 },
+    requires: ['ceramics'],
+  },
+  warehouse: {
+    id: 'warehouse',
+    name: '仓',
+    description: '以陶器营建仓廪，提升木材/铁矿/木炭/黏土/生铁储量上限',
+    icon: '🏯',
+    baseCost: { wood: 50, pottery: 10 },
+    costMultiplier: 1.25,
+    production: {},
+    requires: ['ceramics'],
+  },
+
   granary: {
     id: 'granary',
     name: '粮仓',

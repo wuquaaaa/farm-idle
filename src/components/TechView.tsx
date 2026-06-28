@@ -102,6 +102,9 @@ function effectDescription(effect: { type: string; target: string; multiplier?: 
     mine: '矿场',
     ironfurnace: '冶铁炉',
     smithy: '铁匠铺',
+    claypit: '取土场',
+    potterykiln: '陶窑',
+    warehouse: '仓',
     grain: '粮食收获',
     granary: '粮仓',
   };
@@ -130,6 +133,8 @@ function getResourceName(id: string): string {
     ore: '铁矿',
     iron: '生铁',
     tools: '农具',
+    clay: '黏土',
+    pottery: '陶器',
   };
   return names[id] ?? id;
 }

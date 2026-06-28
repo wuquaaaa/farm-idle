@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import type { GameState } from '../core/state';
+import { getMaxStorage } from '../core/systems/resourceSystem';
 
 interface Props {
   state: GameState;
@@ -12,12 +13,11 @@ interface RowDef {
   key: keyof GameState['resources'];
   icon: string;
   label: string;
-  hasMax?: boolean;       // grain 有储量上限
   always?: boolean;       // 始终显示；否则仅在已获得过时显示
 }
 
 const ROWS: RowDef[] = [
-  { key: 'grain', icon: '🌾', label: '粮食', hasMax: true, always: true },
+  { key: 'grain', icon: '🌾', label: '粮食', always: true },
   { key: 'wood',  icon: '🪵', label: '木材', always: true },
   { key: 'paper', icon: '📄', label: '纸' },
   { key: 'books', icon: '📚', label: '书籍' },
@@ -25,12 +25,13 @@ const ROWS: RowDef[] = [
   { key: 'ore',   icon: '🪨', label: '铁矿' },
   { key: 'iron',  icon: '🔩', label: '生铁' },
   { key: 'tools', icon: '🛠️', label: '农具' },
+  { key: 'clay',  icon: '🟤', label: '黏土' },
+  { key: 'pottery', icon: '🏺', label: '陶器' },
 ];
 
 export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { resources, buildings, workers } = state;
-  const grainMax = 1000 + (buildings.granary?.count ?? 0) * 500;
 
   const handleExport = () => {
     const data = JSON.stringify(state);
@@ -66,10 +67,11 @@ export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
         if (always) return true;
         const r = resources[key];
         return r && (r.amount > 0 || r.totalEarned > 0);
-      }).map(({ key, icon, label, hasMax }) => {
+      }).map(({ key, icon, label }) => {
         const res = resources[key];
         const perSec = res.perSecond;
-        const max = hasMax ? grainMax : undefined;
+        const maxRaw = getMaxStorage(state, key);
+        const max = maxRaw === Infinity ? undefined : maxRaw;
 
         return (
           <div key={key} className="mb-3 last:mb-0">
@@ -121,24 +123,9 @@ export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
 
       {/* 存档操作 */}
       <div className="border-t border-stone-100 pt-3 mt-3 flex gap-1">
-        <button
-          onClick={handleExport}
-          className="flex-1 py-1.5 text-xs rounded bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors"
-        >
-          保存
-        </button>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="flex-1 py-1.5 text-xs rounded bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors"
-        >
-          读档
-        </button>
-        <button
-          onClick={() => { if (confirm('确定要重置所有进度？此操作不可恢复！')) onReset(); }}
-          className="flex-1 py-1.5 text-xs rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
-        >
-          重置
-        </button>
+        <button onClick={handleExport} className="flex-1 py-1.5 text-xs rounded bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors">保存</button>
+        <button onClick={() => fileInputRef.current?.click()} className="flex-1 py-1.5 text-xs rounded bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors">读档</button>
+        <button onClick={() => { if (confirm('确定要重置所有进度？此操作不可恢复！')) onReset(); }} className="flex-1 py-1.5 text-xs rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors">重置</button>
         <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
       </div>
     </div>

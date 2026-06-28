@@ -53,6 +53,18 @@ export const TECHS: Record<string, TechDef> = {
     cost: { paper: 30 },
     effects: [{ type: 'multiply_production', target: 'woodcamp', multiplier: 2 }],
   },
+  ceramics: {
+    id: 'ceramics',
+    name: '陶冶术',
+    description: '开启储量链：解锁 取土场、陶窑、仓；陶器可营建仓廪扩大储量',
+    icon: '🏺',
+    cost: { paper: 40 },
+    effects: [
+      { type: 'unlock_building', target: 'claypit' },
+      { type: 'unlock_building', target: 'potterykiln' },
+      { type: 'unlock_building', target: 'warehouse' },
+    ],
+  },
   ironworking: {
     id: 'ironworking',
     name: '冶铁术',
