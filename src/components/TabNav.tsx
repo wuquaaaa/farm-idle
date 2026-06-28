@@ -8,8 +8,7 @@ interface Props {
 }
 
 const LABELS: Record<string, { label: string; icon: string }> = {
-  production: { label: '生产', icon: '🌾' },
-  build:      { label: '建造', icon: '🏗️' },
+  production: { label: '田园', icon: '🏡' },
   tech:       { label: '科技', icon: '📚' },
   market:     { label: '市集', icon: '💰' },
   worker:     { label: '帮工', icon: '👨‍🌾' },

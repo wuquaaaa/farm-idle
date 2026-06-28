@@ -12,12 +12,11 @@ import { TabNav } from './components/TabNav';
 import { ResourceBar } from './components/ResourceBar';
 import { ResourcePanel } from './components/ResourcePanel';
 import { ProductionView } from './components/ProductionView';
-import { BuildView } from './components/BuildView';
 import { TechView } from './components/TechView';
 import { MarketView } from './components/MarketView';
 import { WorkerView } from './components/WorkerView';
 
-const TABS = ['production', 'build', 'tech', 'market', 'worker'] as const;
+const TABS = ['production', 'tech', 'market', 'worker'] as const;
 type TabId = (typeof TABS)[number];
 
 export function App() {
@@ -79,7 +78,6 @@ export function App() {
       <div className="flex-1 flex max-w-4xl mx-auto w-full">
         <div className="flex-1 p-4 pb-24 min-w-0">
           {tab === 'production' && <ProductionView state={state} dispatch={dispatch} />}
-          {tab === 'build' && <BuildView state={state} dispatch={dispatch} />}
           {tab === 'tech' && <TechView state={state} dispatch={dispatch} />}
           {tab === 'market' && <MarketView state={state} dispatch={dispatch} />}
           {tab === 'worker' && <WorkerView state={state} dispatch={dispatch} />}

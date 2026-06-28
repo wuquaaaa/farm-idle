@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import type { GameState } from '../core/state';
 import { ActionTypes } from '../core/systems/types';
-import { BUILDINGS, getBuildingCost } from '../data/buildings';
+import { BuildView } from './BuildView';
 
 interface Props {
   state: GameState;
@@ -31,16 +31,11 @@ export function ProductionView({ state, dispatch }: Props) {
   }, [dispatch, triggerEffect, state.resources.grain.amount]);
 
   const clickPower = state.stats.clickPower;
-  const farmland = BUILDINGS.farmland;
-  const farmlandCount = state.buildings.farmland.count;
-  const farmlandCost = getBuildingCost(farmland, state);
-  const canAffordFarmland = Object.entries(farmlandCost).every(
-    ([res, amount]) => (state.resources[res as keyof GameState['resources']]?.amount ?? 0) >= amount
-  );
   const canChop = state.resources.grain.amount >= 100;
 
   return (
     <div className="space-y-3">
+      {/* 动作：收集粮食 / 砍树 */}
       <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4">
         <div className="grid grid-cols-2 gap-3">
           <div className="relative">
@@ -74,21 +69,8 @@ export function ProductionView({ state, dispatch }: Props) {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="font-semibold text-stone-800">🌱 农田</h3>
-            <p className="text-xs text-stone-400 mt-0.5">已开垦 {farmlandCount} 块 · 每块 +{farmland.production.grain}/s</p>
-          </div>
-          <div className="text-xl font-bold text-farm-600">{farmlandCount}</div>
-        </div>
-        <button
-          onClick={() => dispatch(ActionTypes.BUY_BUILDING, { buildingId: 'farmland' })}
-          disabled={!canAffordFarmland}
-          className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all ${canAffordFarmland ? 'bg-farm-100 text-farm-700 border border-farm-300 hover:bg-farm-200 active:scale-[0.98]' : 'bg-stone-100 text-stone-400'}`}
-        >开垦农田 — 🌾{farmlandCost.grain}</button>
-      </div>
-
+      {/* 所有建筑（农田、磨坊、小屋、水井、碾房、酒坊…同级） */}
+      <BuildView state={state} dispatch={dispatch} />
     </div>
   );
 }
