@@ -108,4 +108,34 @@ function BuildingCard({ building, state, dispatch }: {
             : 'bg-stone-100 text-stone-400 cursor-not-allowed'
           }`}
       >
-        {ow
+        {owned === 0 ? '建造' : '扩张'} —{' '}
+        {Object.entries(cost).map(([res, amount], i) => (
+          <span key={res}>
+            {i > 0 ? ' + ' : ''}
+            {amount.toFixed(0)}{getResourceName(res)}
+          </span>
+        ))}
+      </button>
+    </div>
+  );
+}
+
+function getBuildingCost(def: BuildingDef, owned: number): Record<string, number> {
+  const cost: Record<string, number> = {};
+  for (const [res, baseCost] of Object.entries(def.baseCost)) {
+    cost[res] = Math.floor(baseCost * Math.pow(def.costMultiplier, owned));
+  }
+  return cost;
+}
+
+function getResourceName(id: string): string {
+  const names: Record<string, string> = {
+    grain: '🌾',
+    gold: '💰',
+    wood: '🪵',
+    water: '💧',
+    rice: '🍚',
+    wine: '🍶',
+  };
+  return names[id] ?? id;
+}

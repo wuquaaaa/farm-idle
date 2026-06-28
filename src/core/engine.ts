@@ -157,3 +157,10 @@ export class GameEngine {
   }
 
   private calculateOfflineProgress(): void {
+    const now = Date.now();
+    const elapsed = (now - this.state.stats.lastSavedAt) / 1000;
+    if (elapsed <= 5) return;
+    for (const system of this.systems) system.tick(Math.min(elapsed, 14400), this.state);
+    this.save();
+  }
+}

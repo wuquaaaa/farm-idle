@@ -94,4 +94,30 @@ export function MarketView({ state, dispatch }: Props) {
       </button>
 
       {/* 卖出米酒（解锁酿造后出现） */}
-      {wineU
+      {wineUnlocked && (
+        <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-stone-600">卖出米酒</div>
+            <div className="text-xs text-stone-400">🍶 1 = 💰 {winePrice}</div>
+          </div>
+          <button
+            onClick={() => dispatch(ActionTypes.SELL_RESOURCE, { resourceId: 'wine', amount: wine.amount })}
+            disabled={wine.amount <= 0}
+            className="w-full py-3 bg-amber-500 text-white rounded-xl font-medium
+                       hover:bg-amber-600 disabled:bg-stone-100 disabled:text-stone-400
+                       transition-colors active:scale-[0.98]"
+          >
+            全部卖出（{wine.amount.toFixed(0)} 米酒 → {(wine.amount * winePrice).toFixed(0)} 金币）
+          </button>
+        </div>
+      )}
+
+      {/* 统计 */}
+      <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-3">
+        <div className="text-xs text-stone-500">
+          累计卖出：{state.market.totalSold.toFixed(0)} 粮食
+        </div>
+      </div>
+    </div>
+  );
+}

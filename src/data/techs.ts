@@ -113,4 +113,16 @@ export function canUnlockTech(
 ): boolean {
   // 已解锁
   if (state.techs[def.id as keyof GameState['techs']]?.unlocked) return false;
- 
+  // 前置科技
+  if (def.requires) {
+    for (const req of def.requires) {
+      if (!state.techs[req as keyof GameState['techs']]?.unlocked) return false;
+    }
+  }
+  // 资源检查
+  for (const [res, amount] of Object.entries(def.cost)) {
+    const owned = state.resources[res as keyof GameState['resources']]?.amount ?? 0;
+    if (owned < amount) return false;
+  }
+  return true;
+}

@@ -91,4 +91,36 @@ export function createInitialState(): GameState {
       farmland: { count: 0 },
       mill: { count: 0 },
       granary: { count: 0 },
-      hut: { co
+      hut: { count: 0 },
+      well: { count: 0 },
+      millhouse: { count: 0 },
+      winery: { count: 0 },
+    },
+    techs: {
+      cropRotation: { unlocked: false },
+      irrigation: { unlocked: false },
+      fineMilling: { unlocked: false },
+      bigGranary: { unlocked: false },
+      improvedSeeds: { unlocked: false },
+      brewing: { unlocked: false },
+    },
+    market: {
+      sellRate: 0.2,
+      totalSold: 0,
+    },
+    workers: {
+      count: 0,
+      allocatedFarmland: 0,
+      allocatedLumber: 0,
+      foodPerSec: 0.1,
+    },
+    stats: {
+      totalClicks: 0,
+      totalGrainSold: 0,
+      totalChops: 0,
+      playTimeMs: 0,
+      lastSavedAt: Date.now(),
+      clickPower: 1,
+    },
+  };
+}

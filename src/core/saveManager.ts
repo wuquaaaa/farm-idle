@@ -44,4 +44,30 @@ export class SaveManager {
     try {
       const state = JSON.parse(data);
       if (!state?.version) return false;
-      localStora
+      localStorage.setItem(SAVE_KEY, data);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+/**
+ * 存档迁移：把旧存档合并进当前初始结构，补齐新增的资源/建筑/科技字段，
+ * 保留玩家已有进度。新增分组字段时无需再改这里。
+ */
+function migrate(saved: Partial<GameState>): GameState {
+  const base = createInitialState();
+  const merged: GameState = {
+    ...base,
+    ...saved,
+    version: base.version,
+    resources: { ...base.resources, ...(saved.resources ?? {}) },
+    buildings: { ...base.buildings, ...(saved.buildings ?? {}) },
+    techs: { ...base.techs, ...(saved.techs ?? {}) },
+    market: { ...base.market, ...(saved.market ?? {}) },
+    workers: { ...base.workers, ...(saved.workers ?? {}) },
+    stats: { ...base.stats, ...(saved.stats ?? {}) },
+  };
+  return merged;
+}

@@ -100,4 +100,41 @@ export class BuildingSystem implements GameSystem {
     if (!canAffordBuilding(def, state)) return false;
     if (!this.isUnlocked(buildingId, state)) return false;
 
-    
+    const cost = getBuildingCost(def, state);
+    if (!this.resourceSystem!.spendResources(state, cost)) return false;
+
+    const buildingState = state.buildings[buildingId as keyof GameState['buildings']];
+    if (!buildingState) return false;
+    buildingState.count++;
+
+    this.events?.emit(GameEvents.BUILDING_BUILT, { buildingId });
+    return true;
+  }
+
+  /** 检查建筑是否已解锁 */
+  private isUnlocked(buildingId: string, state: GameState): boolean {
+    const def = BUILDINGS[buildingId];
+    if (!def?.requires) return true;
+    return def.requires.every(
+      (req) => state.techs[req as keyof GameState['techs']]?.unlocked ?? false
+    );
+  }
+
+  /** 建筑是否可见（前置科技已满足，也许还未买） */
+  isVisible(buildingId: string, state: GameState): boolean {
+    const def = BUILDINGS[buildingId];
+    if (!def) return false;
+    if (!def.requires) return true;
+    return this.getUnlockedCount(buildingId, state) > 0;
+  }
+
+  /** 这个建筑有几个可能被解锁 */
+  private getUnlockedCount(_buildingId: string, state: GameState): number {
+    const def = BUILDINGS[_buildingId];
+    if (!def?.requires) return 1;
+    const allMet = def.requires.every(
+      (req) => state.techs[req as keyof GameState['techs']]?.unlocked ?? false
+    );
+    return allMet ? 1 : 0;
+  }
+}

@@ -134,4 +134,19 @@ export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
         </button>
         <button
           onClick={() => { if (confirm('确定要重置所有进度？此操作不可恢复！')) onReset(); }}
-          className="flex-1 py-1.5 text-xs rounded bg-red-50 text-re
+          className="flex-1 py-1.5 text-xs rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+        >
+          重置
+        </button>
+        <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
+      </div>
+    </div>
+  );
+}
+
+function fmt(n: number): string {
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e4) return (n / 1e3).toFixed(1) + 'K';
+  if (n >= 100) return Math.floor(n).toString();
+  return n.toFixed(1);
+}

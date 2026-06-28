@@ -27,4 +27,5 @@ export const ActionTypes = {
   SELL_RESOURCE: 'action:sellResource',
   HIRE_WORKER: 'action:hireWorker',
   ALLOCATE_WORKER: 'action:allocateWorker',
-  UNALLOCATE_WORKER:
+  UNALLOCATE_WORKER: 'action:unallocateWorker',
+} as const;

@@ -33,4 +33,22 @@ export function ResourceBar({ state }: Props) {
                   <span className="text-sm font-semibold text-stone-800">{fmt(res.amount)}</span>
                 </div>
                 {res.perSecond !== 0 && (
-                  <div className={`text-xs ${res.perSecond > 0 ? 't
+                  <div className={`text-xs ${res.perSecond > 0 ? 'text-stone-400' : 'text-red-400'}`}>
+                    {res.perSecond > 0 ? '+' : ''}{fmt(res.perSecond)}/s
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function fmt(n: number): string {
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e4) return (n / 1e3).toFixed(1) + 'K';
+  if (n >= 100) return Math.floor(n).toString();
+  return n.toFixed(1);
+}

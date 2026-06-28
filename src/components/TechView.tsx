@@ -128,4 +128,12 @@ function effectDescription(effect: { type: string; target: string; multiplier?: 
 
 function getResourceName(id: string): string {
   const names: Record<string, string> = {
-    gra
+    grain: '粮食',
+    gold: '金币',
+    wood: '木头',
+    water: '清水',
+    rice: '精米',
+    wine: '米酒',
+  };
+  return names[id] ?? id;
+}
