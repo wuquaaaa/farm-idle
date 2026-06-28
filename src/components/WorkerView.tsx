@@ -10,7 +10,7 @@ export function WorkerView({ state, dispatch }: Props) {
   const w = state.workers;
   const capacity = state.buildings.hut?.count ?? 0;
   const idle = w.count - w.allocatedFarmland - w.allocatedLumber;
-  const canHire = capacity > 0 && w.count < capacity && state.resources.gold.amount >= getHireCost(state);
+  const canHire = capacity > 0 && w.count < capacity;
 
   return (
     <div className="space-y-3">
@@ -19,7 +19,7 @@ export function WorkerView({ state, dispatch }: Props) {
           <h2 className="font-semibold text-stone-800">👨‍🌾 帮工</h2>
           <span className="text-sm text-stone-400">{w.count}/{capacity} 人</span>
         </div>
-        <p className="text-xs text-stone-400">每人每秒消耗 {w.foodPerSec.toFixed(1)} 🌾</p>
+        <p className="text-xs text-stone-400">每人每秒消耗 {w.foodPerSec.toFixed(1)} 🌾，建好小屋即可免费上工</p>
       </div>
 
       {w.count > 0 && (
@@ -55,7 +55,7 @@ export function WorkerView({ state, dispatch }: Props) {
         disabled={!canHire}
         className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${canHire ? 'bg-farm-500 text-white hover:bg-farm-600 active:scale-[0.98] shadow-sm' : 'bg-stone-100 text-stone-400'}`}
       >
-        {capacity === 0 ? '需要先建造小屋' : w.count >= capacity ? '小屋已满' : `招募帮工 — 💰${getHireCost(state).toFixed(0)}`}
+        {capacity === 0 ? '需要先建造小屋' : w.count >= capacity ? '小屋已满' : '招募帮工（免费）'}
       </button>
 
       {capacity === 0 && (
@@ -63,8 +63,4 @@ export function WorkerView({ state, dispatch }: Props) {
       )}
     </div>
   );
-}
-
-function getHireCost(state: GameState): number {
-  return Math.ceil(50 * Math.pow(1.25, state.workers.count));
 }

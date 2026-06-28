@@ -1,5 +1,6 @@
 // ============================================================
 // WorkerSystem — 帮工招募、消耗粮食、分配岗位产出
+// 招募免费：受 小屋名额 + 持续吃粮 两道约束即可
 // ============================================================
 
 import type { GameState } from '../state';
@@ -8,8 +9,6 @@ import { GameEvents } from '../eventBus';
 import type { GameSystem } from './types';
 import type { ResourceSystem } from './resourceSystem';
 
-const HIRE_BASE_COST = 50;
-const HIRE_COST_MULT = 1.25;
 const FARMLAND_OUTPUT = 0.5;
 const LUMBER_OUTPUT = 0.05;
 
@@ -70,10 +69,9 @@ export class WorkerSystem implements GameSystem {
     return state.workers.count - state.workers.allocatedFarmland - state.workers.allocatedLumber;
   }
 
+  /** 招募帮工：免费，只要还有空余小屋名额 */
   hireWorker(state: GameState): boolean {
     if (state.workers.count >= this.getCapacity(state)) return false;
-    const cost = this.getHireCost(state);
-    if (!this.resourceSystem!.spendResource(state, 'gold', cost)) return false;
     state.workers.count++;
     this.events?.emit(GameEvents.BUILDING_BUILT, { buildingId: 'worker' });
     return true;
@@ -98,9 +96,5 @@ export class WorkerSystem implements GameSystem {
       state.workers.allocatedLumber--;
     }
     return true;
-  }
-
-  getHireCost(state: GameState): number {
-    return Math.ceil(HIRE_BASE_COST * Math.pow(HIRE_COST_MULT, state.workers.count));
   }
 }
