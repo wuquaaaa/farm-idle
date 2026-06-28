@@ -118,6 +118,10 @@ function getResourceName(id: string): string {
     wood: '🪵',
     paper: '📄',
     books: '📚',
+    charcoal: '🔥',
+    ore: '🪨',
+    iron: '🔩',
+    tools: '🛠️',
   };
   return names[id] ?? id;
 }

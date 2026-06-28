@@ -1,6 +1,6 @@
 // ============================================================
-// BuildingSystem — 管理建筑的购买和每 tick 产出
-// 产出额外乘以「节气系数」：生产建筑取农事系数，加工建筑取加工系数
+// BuildingSystem — 建筑购买、每 tick 产出、农具磨损
+// 产出乘：科技倍率 × 节气系数 × (toolBoost建筑)农具系数
 // ============================================================
 
 import type { GameState } from '../state';
@@ -11,6 +11,9 @@ import { BUILDINGS, getBuildingCost, canAffordBuilding } from '../../data/buildi
 import { getTechMultiplier } from '../../data/techs';
 import { getSeasonMultiplier } from '../../data/calendar';
 import type { ResourceSystem } from './resourceSystem';
+
+const TOOL_WEAR_RATE = 0.02;  // 每座 toolBoost 建筑每秒磨损的农具
+const TOOL_BONUS = 0.5;        // 农具满供时的增产幅度（×1.5）
 
 export class BuildingSystem implements GameSystem {
   id = 'building';
@@ -28,9 +31,31 @@ export class BuildingSystem implements GameSystem {
   tick(dt: number, state: GameState): void {
     if (!this.resourceSystem) return;
 
-    // 每 tick 由建筑系统重置 perSecond，随后各系统（含帮工）按实际产出累加
+    // 每 tick 重置 perSecond，随后各系统按实际产出累加
     for (const key of Object.keys(state.resources) as Array<keyof GameState['resources']>) {
       state.resources[key].perSecond = 0;
+    }
+
+    // —— 农具磨损：统计需维护的建筑，按库存覆盖率给增产 ——
+    let toolUpkeep = 0;
+    for (const def of Object.values(BUILDINGS)) {
+      if (!def.toolBoost) continue;
+      const bs = state.buildings[def.id as keyof GameState['buildings']];
+      if (!bs || bs.count === 0) continue;
+      if (!this.isUnlocked(def.id, state)) continue;
+      toolUpkeep += bs.count * TOOL_WEAR_RATE * dt;
+    }
+    let toolFactor = 1;
+    if (toolUpkeep > 0) {
+      const toolsRes = state.resources.tools;
+      const have = toolsRes?.amount ?? 0;
+      const coverage = Math.min(1, have / toolUpkeep);
+      if (coverage > 0) {
+        this.resourceSystem.spendResource(state, 'tools', toolUpkeep * coverage);
+      }
+      toolFactor = 1 + TOOL_BONUS * coverage;
+      // perSecond：农具的磨损消耗（每秒）
+      if (toolsRes) toolsRes.perSecond -= (toolUpkeep / dt) * coverage;
     }
 
     for (const def of Object.values(BUILDINGS)) {
@@ -41,14 +66,15 @@ export class BuildingSystem implements GameSystem {
       const count = buildingState.count;
       const consumes = def.consumes;
       const isConverter = !!consumes && Object.keys(consumes).length > 0;
-      // 科技倍率 × 节气系数（农事/加工）
+      const tf = def.toolBoost ? toolFactor : 1;
+      // 科技倍率 × 节气系数 × 农具系数
       const multiplier =
         getTechMultiplier(state, 'multiply_production', def.id)
-        * getSeasonMultiplier(state, isConverter);
+        * getSeasonMultiplier(state, isConverter)
+        * tf;
 
       if (isConverter) {
         // —— 加工建筑：按瓶颈比例运转 ——
-        // 比例 = 各投入资源「现有量 / 本 tick 需求量」的最小值，封顶 1
         let ratio = 1;
         for (const [resId, rate] of Object.entries(consumes!)) {
           const need = count * rate * dt;
@@ -59,21 +85,18 @@ export class BuildingSystem implements GameSystem {
         if (ratio < 0) ratio = 0;
 
         if (ratio > 0) {
-          // 消耗投入（夹取上限，规避浮点误差；投入不受节气影响）
           for (const [resId, rate] of Object.entries(consumes!)) {
             const res = state.resources[resId as keyof GameState['resources']];
             if (!res) continue;
             const used = Math.min(count * rate * dt * ratio, res.amount);
             if (used > 0) this.resourceSystem.spendResource(state, resId, used);
           }
-          // 产出成品（含节气加工系数）
           for (const [resId, rate] of Object.entries(def.production)) {
             const amount = count * rate * dt * ratio * multiplier;
             if (amount > 0) this.resourceSystem.addResource(state, resId, amount);
           }
         }
 
-        // perSecond：投入计负、产出计正，均按当前比例反映真实吞吐
         for (const [resId, rate] of Object.entries(consumes!)) {
           const res = state.resources[resId as keyof GameState['resources']];
           if (res) res.perSecond -= count * rate * ratio;
@@ -83,7 +106,7 @@ export class BuildingSystem implements GameSystem {
           if (res) res.perSecond += count * rate * ratio * multiplier;
         }
       } else {
-        // —— 普通生产建筑：无中生有（含节气农事系数） ——
+        // —— 普通生产建筑 ——
         for (const [resId, baseRate] of Object.entries(def.production)) {
           const amount = count * baseRate * multiplier * dt;
           if (amount > 0) this.resourceSystem.addResource(state, resId, amount);
@@ -98,7 +121,6 @@ export class BuildingSystem implements GameSystem {
     this.events = null;
   }
 
-  /** 购买建筑 */
   buyBuilding(state: GameState, buildingId: string): boolean {
     const def = BUILDINGS[buildingId];
     if (!def) return false;
@@ -116,30 +138,11 @@ export class BuildingSystem implements GameSystem {
     return true;
   }
 
-  /** 检查建筑是否已解锁 */
   private isUnlocked(buildingId: string, state: GameState): boolean {
     const def = BUILDINGS[buildingId];
     if (!def?.requires) return true;
     return def.requires.every(
       (req) => state.techs[req as keyof GameState['techs']]?.unlocked ?? false
     );
-  }
-
-  /** 建筑是否可见（前置科技已满足，也许还未买） */
-  isVisible(buildingId: string, state: GameState): boolean {
-    const def = BUILDINGS[buildingId];
-    if (!def) return false;
-    if (!def.requires) return true;
-    return this.getUnlockedCount(buildingId, state) > 0;
-  }
-
-  /** 这个建筑有几个可能被解锁 */
-  private getUnlockedCount(_buildingId: string, state: GameState): number {
-    const def = BUILDINGS[_buildingId];
-    if (!def?.requires) return 1;
-    const allMet = def.requires.every(
-      (req) => state.techs[req as keyof GameState['techs']]?.unlocked ?? false
-    );
-    return allMet ? 1 : 0;
   }
 }

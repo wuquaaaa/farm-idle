@@ -98,6 +98,10 @@ function effectDescription(effect: { type: string; target: string; multiplier?: 
     woodcamp: '林场',
     papermill: '造纸坊',
     bookbindery: '书坊',
+    charcoalkiln: '炭窑',
+    mine: '矿场',
+    ironfurnace: '冶铁炉',
+    smithy: '铁匠铺',
     grain: '粮食收获',
     granary: '粮仓',
   };
@@ -122,6 +126,10 @@ function getResourceName(id: string): string {
     wood: '木材',
     paper: '纸',
     books: '书籍',
+    charcoal: '木炭',
+    ore: '铁矿',
+    iron: '生铁',
+    tools: '农具',
   };
   return names[id] ?? id;
 }

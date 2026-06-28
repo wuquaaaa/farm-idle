@@ -1,6 +1,5 @@
 // ============================================================
-// 建筑定义 —— 农耕造纸循环
-//   农田→粮  林场→木  造纸坊(木→纸)  书坊(纸→书)  粮仓(储)  小屋(帮工)
+// 建筑定义 —— 农耕造纸 + 铁矿链
 // ============================================================
 
 import type { GameState } from '../core/state';
@@ -14,11 +13,10 @@ export interface BuildingDef {
   costMultiplier: number;
   /** 每座建筑每秒产出（无中生有 或 加工产出） */
   production: Partial<Record<keyof GameState['resources'], number>>;
-  /**
-   * 每座建筑每秒投入。存在时该建筑为「加工建筑」：
-   * 每 tick 先消耗投入再产出，投入不足则按瓶颈比例降速运转。
-   */
+  /** 每座建筑每秒投入（存在则为加工建筑，按瓶颈降速运转） */
   consumes?: Partial<Record<keyof GameState['resources'], number>>;
+  /** 该建筑享受农具增产，并按数量消耗农具维护（磨损） */
+  toolBoost?: boolean;
   requires?: string[];
 }
 
@@ -31,6 +29,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     baseCost: { grain: 10 },
     costMultiplier: 1.15,
     production: { grain: 0.5 },
+    toolBoost: true,
   },
   woodcamp: {
     id: 'woodcamp',
@@ -40,6 +39,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     baseCost: { grain: 30 },
     costMultiplier: 1.18,
     production: { wood: 0.3 },
+    toolBoost: true,
   },
   papermill: {
     id: 'papermill',
@@ -62,6 +62,52 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     production: { books: 1 },
     requires: ['printing'],
   },
+
+  // —— 铁矿链（研究「冶铁术」解锁）——
+  charcoalkiln: {
+    id: 'charcoalkiln',
+    name: '炭窑',
+    description: '每秒耗 2 木材烧制 1 木炭（冶铁燃料）',
+    icon: '🔥',
+    baseCost: { wood: 50 },
+    costMultiplier: 1.18,
+    consumes: { wood: 2 },
+    production: { charcoal: 1 },
+    requires: ['ironworking'],
+  },
+  mine: {
+    id: 'mine',
+    name: '矿场',
+    description: '开采铁矿，每座每秒产出 0.2 铁矿',
+    icon: '⛏️',
+    baseCost: { grain: 80, wood: 20 },
+    costMultiplier: 1.18,
+    production: { ore: 0.2 },
+    requires: ['ironworking'],
+  },
+  ironfurnace: {
+    id: 'ironfurnace',
+    name: '冶铁炉',
+    description: '每秒耗 2 铁矿 + 1 木炭，炼出 1 生铁',
+    icon: '🔩',
+    baseCost: { wood: 100 },
+    costMultiplier: 1.2,
+    consumes: { ore: 2, charcoal: 1 },
+    production: { iron: 1 },
+    requires: ['ironworking'],
+  },
+  smithy: {
+    id: 'smithy',
+    name: '铁匠铺',
+    description: '每秒耗 2 生铁，打造 1 农具',
+    icon: '🛠️',
+    baseCost: { wood: 120 },
+    costMultiplier: 1.2,
+    consumes: { iron: 2 },
+    production: { tools: 1 },
+    requires: ['ironworking'],
+  },
+
   granary: {
     id: 'granary',
     name: '粮仓',

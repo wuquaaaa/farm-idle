@@ -6,10 +6,10 @@
 import type { GameState } from '../core/state';
 
 export type TechEffectType =
-  | 'multiply_production'    // 产量倍率
-  | 'multiply_click'         // 点击倍率
-  | 'unlock_building'        // 解锁建筑
-  | 'storage_boost';         // 增加储存上限
+  | 'multiply_production'
+  | 'multiply_click'
+  | 'unlock_building'
+  | 'storage_boost';
 
 export interface TechEffect {
   type: TechEffectType;
@@ -53,6 +53,19 @@ export const TECHS: Record<string, TechDef> = {
     cost: { paper: 30 },
     effects: [{ type: 'multiply_production', target: 'woodcamp', multiplier: 2 }],
   },
+  ironworking: {
+    id: 'ironworking',
+    name: '冶铁术',
+    description: '开启铁矿链：解锁 炭窑、矿场、冶铁炉、铁匠铺；农具可装备农田林场增产',
+    icon: '🛠️',
+    cost: { paper: 60 },
+    effects: [
+      { type: 'unlock_building', target: 'charcoalkiln' },
+      { type: 'unlock_building', target: 'mine' },
+      { type: 'unlock_building', target: 'ironfurnace' },
+      { type: 'unlock_building', target: 'smithy' },
+    ],
+  },
   irrigation: {
     id: 'irrigation',
     name: '灌溉术',
@@ -88,6 +101,15 @@ export const TECHS: Record<string, TechDef> = {
     cost: { books: 12 },
     requires: ['printing'],
     effects: [{ type: 'multiply_production', target: 'papermill', multiplier: 2 }],
+  },
+  blastFurnace: {
+    id: 'blastFurnace',
+    name: '高炉炼铁',
+    description: '改良炉灶，冶铁炉产量 ×2',
+    icon: '🔥',
+    cost: { books: 15 },
+    requires: ['ironworking', 'printing'],
+    effects: [{ type: 'multiply_production', target: 'ironfurnace', multiplier: 2 }],
   },
 };
 

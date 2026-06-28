@@ -21,6 +21,10 @@ const ROWS: RowDef[] = [
   { key: 'wood',  icon: '🪵', label: '木材', always: true },
   { key: 'paper', icon: '📄', label: '纸' },
   { key: 'books', icon: '📚', label: '书籍' },
+  { key: 'charcoal', icon: '🔥', label: '木炭' },
+  { key: 'ore',   icon: '🪨', label: '铁矿' },
+  { key: 'iron',  icon: '🔩', label: '生铁' },
+  { key: 'tools', icon: '🛠️', label: '农具' },
 ];
 
 export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {

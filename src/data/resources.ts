@@ -1,5 +1,5 @@
 // ============================================================
-// 资源定义 —— 农耕造纸循环：粮食 / 木材 / 纸 / 书籍
+// 资源定义 —— 农耕造纸 + 铁矿链
 // ============================================================
 
 export interface ResourceDef {
@@ -20,7 +20,7 @@ export const RESOURCES: Record<string, ResourceDef> = {
     id: 'wood',
     name: '木材',
     icon: '🪵',
-    description: '林场或砍树获得，建造与造纸所需',
+    description: '林场或砍树获得，建造、造纸与烧炭所需',
   },
   paper: {
     id: 'paper',
@@ -33,5 +33,30 @@ export const RESOURCES: Record<string, ResourceDef> = {
     name: '书籍',
     icon: '📚',
     description: '书坊以纸张印制，用于研究高深学问',
+  },
+  // —— 铁矿链 ——
+  charcoal: {
+    id: 'charcoal',
+    name: '木炭',
+    icon: '🔥',
+    description: '炭窑以木材烧制，冶铁的燃料（被炉灶烧掉）',
+  },
+  ore: {
+    id: 'ore',
+    name: '铁矿',
+    icon: '🪨',
+    description: '矿场开采，冶铁的原料',
+  },
+  iron: {
+    id: 'iron',
+    name: '生铁',
+    icon: '🔩',
+    description: '冶铁炉以铁矿配木炭炼成，用于打造农具',
+  },
+  tools: {
+    id: 'tools',
+    name: '农具',
+    icon: '🛠️',
+    description: '铁匠铺打造，装备于农田林场增产，但会持续磨损',
   },
 };

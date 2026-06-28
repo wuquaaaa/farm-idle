@@ -1,6 +1,5 @@
 // ============================================================
-// GameState — 单一数据源（农耕造纸循环）
-// 直接序列化为 JSON，不做任何转换
+// GameState — 单一数据源（农耕造纸 + 铁矿链）
 // ============================================================
 
 export interface ResourceState {
@@ -18,33 +17,43 @@ export interface TechState {
 }
 
 export interface Calendar {
-  totalDays: number;           // 累计天数（浮点），节气/年份由此推导
+  totalDays: number;
 }
 
 export interface Resources {
   grain: ResourceState;
   wood: ResourceState;
-  paper: ResourceState;        // 纸：造纸坊产，研究基础科技
-  books: ResourceState;        // 书籍：书坊产，研究高深科技
+  paper: ResourceState;
+  books: ResourceState;
+  charcoal: ResourceState;     // 木炭：冶铁燃料
+  ore: ResourceState;          // 铁矿
+  iron: ResourceState;         // 生铁
+  tools: ResourceState;        // 农具（装备增产，磨损消耗）
 }
 
 export interface Buildings {
   farmland: BuildingState;
-  woodcamp: BuildingState;     // 林场：产木材
-  papermill: BuildingState;    // 造纸坊：木材→纸
-  bookbindery: BuildingState;  // 书坊：纸→书籍
-  granary: BuildingState;      // 粮仓：扩粮食储量
-  hut: BuildingState;          // 小屋：帮工空位
+  woodcamp: BuildingState;
+  papermill: BuildingState;
+  bookbindery: BuildingState;
+  charcoalkiln: BuildingState; // 炭窑：木→炭
+  mine: BuildingState;         // 矿场：→铁矿
+  ironfurnace: BuildingState;  // 冶铁炉：矿+炭→生铁
+  smithy: BuildingState;       // 铁匠铺：生铁→农具
+  granary: BuildingState;
+  hut: BuildingState;
 }
 
 export interface Techs {
   improvedSeeds: TechState;
   cropRotation: TechState;
   sharpAxe: TechState;
+  ironworking: TechState;      // 冶铁术：开启铁矿链
   irrigation: TechState;
-  printing: TechState;         // 印刷术：解锁书坊
+  printing: TechState;
   intensiveFarming: TechState;
   paperCraft: TechState;
+  blastFurnace: TechState;
 }
 
 export interface Stats {
@@ -74,18 +83,26 @@ export interface GameState {
 
 export function createInitialState(): GameState {
   return {
-    version: 5,
+    version: 6,
     resources: {
       grain: { amount: 0, totalEarned: 0, perSecond: 0 },
       wood: { amount: 0, totalEarned: 0, perSecond: 0 },
       paper: { amount: 0, totalEarned: 0, perSecond: 0 },
       books: { amount: 0, totalEarned: 0, perSecond: 0 },
+      charcoal: { amount: 0, totalEarned: 0, perSecond: 0 },
+      ore: { amount: 0, totalEarned: 0, perSecond: 0 },
+      iron: { amount: 0, totalEarned: 0, perSecond: 0 },
+      tools: { amount: 0, totalEarned: 0, perSecond: 0 },
     },
     buildings: {
       farmland: { count: 0 },
       woodcamp: { count: 0 },
       papermill: { count: 0 },
       bookbindery: { count: 0 },
+      charcoalkiln: { count: 0 },
+      mine: { count: 0 },
+      ironfurnace: { count: 0 },
+      smithy: { count: 0 },
       granary: { count: 0 },
       hut: { count: 0 },
     },
@@ -93,10 +110,12 @@ export function createInitialState(): GameState {
       improvedSeeds: { unlocked: false },
       cropRotation: { unlocked: false },
       sharpAxe: { unlocked: false },
+      ironworking: { unlocked: false },
       irrigation: { unlocked: false },
       printing: { unlocked: false },
       intensiveFarming: { unlocked: false },
       paperCraft: { unlocked: false },
+      blastFurnace: { unlocked: false },
     },
     workers: {
       count: 0,
