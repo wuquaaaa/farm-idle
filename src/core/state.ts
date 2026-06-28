@@ -22,6 +22,10 @@ export interface MarketState {
   totalSold: number;
 }
 
+export interface Calendar {
+  totalDays: number;           // 累计天数（浮点），节气/年份由此推导
+}
+
 export interface Resources {
   grain: ResourceState;
   gold: ResourceState;
@@ -73,12 +77,13 @@ export interface GameState {
   techs: Techs;
   market: MarketState;
   workers: Workers;
+  calendar: Calendar;
   stats: Stats;
 }
 
 export function createInitialState(): GameState {
   return {
-    version: 3,
+    version: 4,
     resources: {
       grain: { amount: 0, totalEarned: 0, perSecond: 0 },
       gold: { amount: 0, totalEarned: 0, perSecond: 0 },
@@ -113,6 +118,9 @@ export function createInitialState(): GameState {
       allocatedFarmland: 0,
       allocatedLumber: 0,
       foodPerSec: 0.1,
+    },
+    calendar: {
+      totalDays: 0,
     },
     stats: {
       totalClicks: 0,

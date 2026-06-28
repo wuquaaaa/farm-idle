@@ -1,5 +1,6 @@
 // ============================================================
 // BuildingSystem — 管理建筑的购买和每 tick 产出
+// 产出额外乘以「节气系数」：生产建筑取农事系数，加工建筑取加工系数
 // ============================================================
 
 import type { GameState } from '../state';
@@ -8,6 +9,7 @@ import { GameEvents } from '../eventBus';
 import type { GameSystem } from './types';
 import { BUILDINGS, getBuildingCost, canAffordBuilding } from '../../data/buildings';
 import { getTechMultiplier } from '../../data/techs';
+import { getSeasonMultiplier } from '../../data/calendar';
 import type { ResourceSystem } from './resourceSystem';
 
 export class BuildingSystem implements GameSystem {
@@ -37,9 +39,12 @@ export class BuildingSystem implements GameSystem {
       if (!this.isUnlocked(def.id, state)) continue;
 
       const count = buildingState.count;
-      const multiplier = getTechMultiplier(state, 'multiply_production', def.id);
       const consumes = def.consumes;
       const isConverter = !!consumes && Object.keys(consumes).length > 0;
+      // 科技倍率 × 节气系数（农事/加工）
+      const multiplier =
+        getTechMultiplier(state, 'multiply_production', def.id)
+        * getSeasonMultiplier(state, isConverter);
 
       if (isConverter) {
         // —— 加工建筑：按瓶颈比例运转 ——
@@ -54,14 +59,14 @@ export class BuildingSystem implements GameSystem {
         if (ratio < 0) ratio = 0;
 
         if (ratio > 0) {
-          // 消耗投入（夹取上限，规避浮点误差）
+          // 消耗投入（夹取上限，规避浮点误差；投入不受节气影响）
           for (const [resId, rate] of Object.entries(consumes!)) {
             const res = state.resources[resId as keyof GameState['resources']];
             if (!res) continue;
             const used = Math.min(count * rate * dt * ratio, res.amount);
             if (used > 0) this.resourceSystem.spendResource(state, resId, used);
           }
-          // 产出成品
+          // 产出成品（含节气加工系数）
           for (const [resId, rate] of Object.entries(def.production)) {
             const amount = count * rate * dt * ratio * multiplier;
             if (amount > 0) this.resourceSystem.addResource(state, resId, amount);
@@ -78,7 +83,7 @@ export class BuildingSystem implements GameSystem {
           if (res) res.perSecond += count * rate * ratio * multiplier;
         }
       } else {
-        // —— 普通生产建筑：无中生有 ——
+        // —— 普通生产建筑：无中生有（含节气农事系数） ——
         for (const [resId, baseRate] of Object.entries(def.production)) {
           const amount = count * baseRate * multiplier * dt;
           if (amount > 0) this.resourceSystem.addResource(state, resId, amount);

@@ -3,6 +3,7 @@ import { GameEngine } from './core/engine';
 import type { GameState } from './core/state';
 import { ActionTypes } from './core/systems/types';
 import { ResourceSystem } from './core/systems/resourceSystem';
+import { CalendarSystem } from './core/systems/calendarSystem';
 import { BuildingSystem } from './core/systems/buildingSystem';
 import { TechSystem } from './core/systems/techSystem';
 import { MarketSystem } from './core/systems/marketSystem';
@@ -29,13 +30,14 @@ export function App() {
     const savedState = saveManager.load();
 
     const resourceSystem = new ResourceSystem();
+    const calendarSystem = new CalendarSystem();
     const buildingSystem = new BuildingSystem(resourceSystem);
     const techSystem = new TechSystem(resourceSystem);
     const marketSystem = new MarketSystem(resourceSystem);
     const workerSystem = new WorkerSystem(resourceSystem);
 
     const engine = new GameEngine(
-      [resourceSystem, buildingSystem, techSystem, marketSystem, workerSystem],
+      [resourceSystem, calendarSystem, buildingSystem, techSystem, marketSystem, workerSystem],
       savedState
     );
 

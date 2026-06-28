@@ -53,8 +53,8 @@ export class SaveManager {
 }
 
 /**
- * 存档迁移：把旧存档合并进当前初始结构，补齐新增的资源/建筑/科技字段，
- * 保留玩家已有进度。新增分组字段时无需再改这里。
+ * 存档迁移：把旧存档合并进当前初始结构，补齐新增的资源/建筑/科技/历法字段，
+ * 保留玩家已有进度。新增分组字段时在此补一行浅合并即可。
  */
 function migrate(saved: Partial<GameState>): GameState {
   const base = createInitialState();
@@ -67,6 +67,7 @@ function migrate(saved: Partial<GameState>): GameState {
     techs: { ...base.techs, ...(saved.techs ?? {}) },
     market: { ...base.market, ...(saved.market ?? {}) },
     workers: { ...base.workers, ...(saved.workers ?? {}) },
+    calendar: { ...base.calendar, ...(saved.calendar ?? {}) },
     stats: { ...base.stats, ...(saved.stats ?? {}) },
   };
   return merged;

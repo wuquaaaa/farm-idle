@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import type { GameState } from '../core/state';
 import { ActionTypes } from '../core/systems/types';
 import { BuildView } from './BuildView';
+import { CalendarBanner } from './CalendarBanner';
 
 interface Props {
   state: GameState;
@@ -35,6 +36,9 @@ export function ProductionView({ state, dispatch }: Props) {
 
   return (
     <div className="space-y-3">
+      {/* 节气横幅 */}
+      <CalendarBanner state={state} />
+
       {/* 动作：收集粮食 / 砍树 */}
       <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4">
         <div className="grid grid-cols-2 gap-3">
