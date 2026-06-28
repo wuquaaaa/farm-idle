@@ -1,6 +1,12 @@
+import { useRef } from 'react';
 import type { GameState } from '../core/state';
 
-interface Props { state: GameState }
+interface Props {
+  state: GameState;
+  onSave: () => void;
+  onLoad: (data: string) => boolean;
+  onReset: () => void;
+}
 
 interface RowDef {
   key: keyof GameState['resources'];
@@ -15,12 +21,39 @@ const ROWS: RowDef[] = [
   { key: 'gold',  icon: '💰', label: '金币' },
 ];
 
-export function ResourcePanel({ state }: Props) {
+export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { resources, buildings, workers } = state;
-
-  // 储存上限
   const grainMax = 1000 + (buildings.granary?.count ?? 0) * 500;
   const woodMax = 100;
+
+  const handleExport = () => {
+    const data = JSON.stringify(state);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `taoyuanji_save_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    onSave();
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      if (text && onLoad(text)) {
+        window.location.reload();
+      } else {
+        alert('存档格式错误');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4 text-sm">
@@ -75,6 +108,29 @@ export function ResourcePanel({ state }: Props) {
             消耗 {(workers.count * workers.foodPerSec).toFixed(1)} 🌾/s
           </div>
         )}
+      </div>
+
+      {/* 存档操作 */}
+      <div className="border-t border-stone-100 pt-3 mt-3 flex gap-1">
+        <button
+          onClick={handleExport}
+          className="flex-1 py-1.5 text-xs rounded bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors"
+        >
+          保存
+        </button>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="flex-1 py-1.5 text-xs rounded bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors"
+        >
+          读档
+        </button>
+        <button
+          onClick={() => { if (confirm('确定要重置所有进度？此操作不可恢复！')) onReset(); }}
+          className="flex-1 py-1.5 text-xs rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+        >
+          重置
+        </button>
+        <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
       </div>
     </div>
   );

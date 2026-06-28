@@ -30,8 +30,7 @@ export function ProductionView({ state, dispatch }: Props) {
     }
   }, [dispatch, triggerEffect, state.resources.grain.amount]);
 
-  const { stats } = state;
-  const clickPower = stats.clickPower;
+  const clickPower = state.stats.clickPower;
   const farmland = BUILDINGS.farmland;
   const farmlandCount = state.buildings.farmland.count;
   const farmlandCost = getBuildingCost(farmland, state);
@@ -90,15 +89,6 @@ export function ProductionView({ state, dispatch }: Props) {
         >开垦农田 — 🌾{farmlandCost.grain}</button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4">
-        <h3 className="text-sm font-medium text-stone-600 mb-3">生产数据</h3>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div><span className="text-stone-400">每次收集</span><div className="font-semibold text-stone-800">+{clickPower} 🌾</div></div>
-          <div><span className="text-stone-400">每秒自动</span><div className="font-semibold text-stone-800">+{state.resources.grain.perSecond.toFixed(1)} 🌾</div></div>
-          <div><span className="text-stone-400">累计收集</span><div className="font-semibold text-stone-800">{stats.totalClicks} 次</div></div>
-          <div><span className="text-stone-400">累计砍树</span><div className="font-semibold text-stone-800">{stats.totalChops} 次</div></div>
-        </div>
-      </div>
     </div>
   );
 }

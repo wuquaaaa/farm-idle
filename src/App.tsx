@@ -56,6 +56,19 @@ export function App() {
     }
   }, []);
 
+  const handleSave = useCallback(() => {
+    engineRef.current?.save();
+  }, []);
+
+  const handleLoad = useCallback((data: string): boolean => {
+    const sm = new SaveManager();
+    return sm.import(data);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    engineRef.current?.reset();
+  }, []);
+
   if (!state) return <div className="min-h-screen flex items-center justify-center bg-stone-50"><div className="text-stone-400 text-lg animate-pulse">加载中...</div></div>;
 
   return (
@@ -73,7 +86,7 @@ export function App() {
         </div>
         <div className="w-44 flex-shrink-0 p-4 pt-4 hidden md:block">
           <div className="sticky top-16">
-            <ResourcePanel state={state} />
+            <ResourcePanel state={state} onSave={handleSave} onLoad={handleLoad} onReset={handleReset} />
           </div>
         </div>
       </div>
