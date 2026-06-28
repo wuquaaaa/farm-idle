@@ -107,6 +107,9 @@ function effectDescription(effect: { type: string; target: string; multiplier?: 
     mill: '磨坊',
     grain: '粮食收获',
     granary: '粮仓',
+    well: '水井',
+    millhouse: '碾房',
+    winery: '酒坊',
   };
   const targetName = targets[effect.target] ?? effect.target;
   switch (effect.type) {
@@ -125,8 +128,4 @@ function effectDescription(effect: { type: string; target: string; multiplier?: 
 
 function getResourceName(id: string): string {
   const names: Record<string, string> = {
-    grain: '粮食',
-    gold: '金币',
-  };
-  return names[id] ?? id;
-}
+    gra

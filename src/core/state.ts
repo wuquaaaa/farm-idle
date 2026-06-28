@@ -26,6 +26,9 @@ export interface Resources {
   grain: ResourceState;
   gold: ResourceState;
   wood: ResourceState;
+  water: ResourceState;        // 清水（加工链）
+  rice: ResourceState;         // 精米（加工链）
+  wine: ResourceState;         // 米酒（加工链成品）
 }
 
 export interface Buildings {
@@ -33,6 +36,9 @@ export interface Buildings {
   mill: BuildingState;
   granary: BuildingState;
   hut: BuildingState;
+  well: BuildingState;         // 水井：产清水
+  millhouse: BuildingState;    // 碾房：稻谷→精米
+  winery: BuildingState;       // 酒坊：精米+清水→米酒
 }
 
 export interface Techs {
@@ -41,6 +47,7 @@ export interface Techs {
   fineMilling: TechState;
   bigGranary: TechState;
   improvedSeeds: TechState;
+  brewing: TechState;          // 酿造：开启加工链
 }
 
 export interface Stats {
@@ -71,42 +78,17 @@ export interface GameState {
 
 export function createInitialState(): GameState {
   return {
-    version: 2,
+    version: 3,
     resources: {
       grain: { amount: 0, totalEarned: 0, perSecond: 0 },
       gold: { amount: 0, totalEarned: 0, perSecond: 0 },
       wood: { amount: 0, totalEarned: 0, perSecond: 0 },
+      water: { amount: 0, totalEarned: 0, perSecond: 0 },
+      rice: { amount: 0, totalEarned: 0, perSecond: 0 },
+      wine: { amount: 0, totalEarned: 0, perSecond: 0 },
     },
     buildings: {
       farmland: { count: 0 },
       mill: { count: 0 },
       granary: { count: 0 },
-      hut: { count: 0 },
-    },
-    techs: {
-      cropRotation: { unlocked: false },
-      irrigation: { unlocked: false },
-      fineMilling: { unlocked: false },
-      bigGranary: { unlocked: false },
-      improvedSeeds: { unlocked: false },
-    },
-    market: {
-      sellRate: 0.2,
-      totalSold: 0,
-    },
-    workers: {
-      count: 0,
-      allocatedFarmland: 0,
-      allocatedLumber: 0,
-      foodPerSec: 0.1,
-    },
-    stats: {
-      totalClicks: 0,
-      totalGrainSold: 0,
-      totalChops: 0,
-      playTimeMs: 0,
-      lastSavedAt: Date.now(),
-      clickPower: 1,
-    },
-  };
-}
+      hut: { co

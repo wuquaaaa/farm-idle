@@ -97,6 +97,14 @@ export class GameEngine {
         this.findSystem<MarketSystem>('market')!.sellAllGrain(this.state);
         break;
       }
+      case ActionTypes.SELL_RESOURCE: {
+        this.findSystem<MarketSystem>('market')!.sellResource(
+          this.state,
+          payload?.resourceId as string,
+          payload?.amount as number
+        );
+        break;
+      }
       case ActionTypes.HIRE_WORKER: {
         this.findSystem<WorkerSystem>('worker')!.hireWorker(this.state);
         break;
@@ -149,10 +157,3 @@ export class GameEngine {
   }
 
   private calculateOfflineProgress(): void {
-    const now = Date.now();
-    const elapsed = (now - this.state.stats.lastSavedAt) / 1000;
-    if (elapsed <= 5) return;
-    for (const system of this.systems) system.tick(Math.min(elapsed, 14400), this.state);
-    this.save();
-  }
-}

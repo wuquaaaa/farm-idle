@@ -3,6 +3,7 @@
 // ============================================================
 
 import type { GameState } from './state';
+import { createInitialState } from './state';
 
 const SAVE_KEY = 'farm_idle_save';
 
@@ -20,7 +21,8 @@ export class SaveManager {
     try {
       const data = localStorage.getItem(SAVE_KEY);
       if (!data) return null;
-      return JSON.parse(data) as GameState;
+      const parsed = JSON.parse(data) as Partial<GameState>;
+      return migrate(parsed);
     } catch (e) {
       console.warn('读档失败：', e);
       return null;
@@ -42,10 +44,4 @@ export class SaveManager {
     try {
       const state = JSON.parse(data);
       if (!state?.version) return false;
-      localStorage.setItem(SAVE_KEY, data);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-}
+      localStora

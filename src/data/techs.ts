@@ -73,6 +73,18 @@ export const TECHS: Record<string, TechDef> = {
     requires: ['irrigation'],
     effects: [{ type: 'unlock_building', target: 'granary' }],
   },
+  brewing: {
+    id: 'brewing',
+    name: '酿造',
+    description: '开启加工链：解锁 水井、碾房、酒坊，稻谷可酿成米酒高价卖出',
+    icon: '🍶',
+    cost: { gold: 100 },
+    effects: [
+      { type: 'unlock_building', target: 'well' },
+      { type: 'unlock_building', target: 'millhouse' },
+      { type: 'unlock_building', target: 'winery' },
+    ],
+  },
 };
 
 /** 计算科技效果叠加后的总倍率 */
@@ -101,16 +113,4 @@ export function canUnlockTech(
 ): boolean {
   // 已解锁
   if (state.techs[def.id as keyof GameState['techs']]?.unlocked) return false;
-  // 前置科技
-  if (def.requires) {
-    for (const req of def.requires) {
-      if (!state.techs[req as keyof GameState['techs']]?.unlocked) return false;
-    }
-  }
-  // 资源检查
-  for (const [res, amount] of Object.entries(def.cost)) {
-    const owned = state.resources[res as keyof GameState['resources']]?.amount ?? 0;
-    if (owned < amount) return false;
-  }
-  return true;
-}
+ 

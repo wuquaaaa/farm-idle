@@ -24,7 +24,7 @@ export const ActionTypes = {
   UNLOCK_TECH: 'action:unlockTech',
   SELL_GRAIN: 'action:sellGrain',
   SELL_ALL_GRAIN: 'action:sellAllGrain',
+  SELL_RESOURCE: 'action:sellResource',
   HIRE_WORKER: 'action:hireWorker',
   ALLOCATE_WORKER: 'action:allocateWorker',
-  UNALLOCATE_WORKER: 'action:unallocateWorker',
-} as const;
+  UNALLOCATE_WORKER:

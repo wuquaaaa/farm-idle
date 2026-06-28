@@ -56,8 +56,10 @@ function BuildingCard({ building, state, dispatch }: {
     ([res, amount]) => (state.resources[res as keyof GameState['resources']]?.amount ?? 0) >= amount
   );
 
-  // 计算当前产量
   const production = building.production;
+  const consumes = building.consumes ?? {};
+  const hasProduction = Object.keys(production).length > 0;
+  const hasConsumes = Object.keys(consumes).length > 0;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4
@@ -72,16 +74,28 @@ function BuildingCard({ building, state, dispatch }: {
         </span>
       </div>
 
-      {/* 产量 */}
-      <div className="mb-3">
-        <div className="text-xs text-stone-400">
-          产量：
-          {Object.entries(production).map(([res, amount]) => (
-            <span key={res} className="text-farm-600 font-medium ml-1">
-              +{amount}/s {getResourceName(res)}
+      {/* 投入 / 产出（生产数据右对齐） */}
+      <div className="mb-3 space-y-0.5 text-xs">
+        {hasConsumes && (
+          <div className="flex justify-between">
+            <span className="text-stone-400">投入</span>
+            <span className="text-red-500 font-medium">
+              {Object.entries(consumes).map(([res, amount], i) => (
+                <span key={res}>{i > 0 ? ' + ' : ''}-{amount}/s {getResourceName(res)}</span>
+              ))}
             </span>
-          ))}
-        </div>
+          </div>
+        )}
+        {hasProduction && (
+          <div className="flex justify-between">
+            <span className="text-stone-400">产出</span>
+            <span className="text-farm-600 font-medium">
+              {Object.entries(production).map(([res, amount], i) => (
+                <span key={res}>{i > 0 ? ' + ' : ''}+{amount}/s {getResourceName(res)}</span>
+              ))}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 建造按钮 */}
@@ -94,30 +108,4 @@ function BuildingCard({ building, state, dispatch }: {
             : 'bg-stone-100 text-stone-400 cursor-not-allowed'
           }`}
       >
-        {owned === 0 ? '建造' : '扩张'} —{' '}
-        {Object.entries(cost).map(([res, amount], i) => (
-          <span key={res}>
-            {i > 0 ? ' + ' : ''}
-            {amount.toFixed(0)}{getResourceName(res)}
-          </span>
-        ))}
-      </button>
-    </div>
-  );
-}
-
-function getBuildingCost(def: BuildingDef, owned: number): Record<string, number> {
-  const cost: Record<string, number> = {};
-  for (const [res, baseCost] of Object.entries(def.baseCost)) {
-    cost[res] = Math.floor(baseCost * Math.pow(def.costMultiplier, owned));
-  }
-  return cost;
-}
-
-function getResourceName(id: string): string {
-  const names: Record<string, string> = {
-    grain: '粮食',
-    gold: '金币',
-  };
-  return names[id] ?? id;
-}
+        {ow

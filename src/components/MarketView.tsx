@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import type { GameState } from '../core/state';
 import { ActionTypes } from '../core/systems/types';
+import { SELL_PRICES } from '../core/systems/marketSystem';
 
 interface Props {
   state: GameState;
@@ -15,6 +16,10 @@ export function MarketView({ state, dispatch }: Props) {
   const [sellAmount, setSellAmount] = useState(100);
   const grain = state.resources.grain.amount;
   const rate = state.market.sellRate;
+
+  const wine = state.resources.wine;
+  const winePrice = SELL_PRICES.wine;
+  const wineUnlocked = wine.amount > 0 || wine.totalEarned > 0;
 
   // 快捷金额选项
   const presets = [10, 50, 100, 500, 1000];
@@ -88,12 +93,5 @@ export function MarketView({ state, dispatch }: Props) {
         全部卖出（{grain.toFixed(0)} 粮食 → {(grain * rate).toFixed(0)} 金币）
       </button>
 
-      {/* 统计 */}
-      <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-3">
-        <div className="text-xs text-stone-500">
-          累计卖出：{state.market.totalSold.toFixed(0)} 粮食
-        </div>
-      </div>
-    </div>
-  );
-}
+      {/* 卖出米酒（解锁酿造后出现） */}
+      {wineU

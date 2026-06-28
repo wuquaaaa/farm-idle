@@ -28,4 +28,4 @@ export const RESOURCES: Record<string, ResourceDef> = {
     icon: '🪵',
     description: '砍树获得，用于建造小屋',
   },
-};
+  /

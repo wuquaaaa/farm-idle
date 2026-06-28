@@ -13,12 +13,16 @@ interface RowDef {
   icon: string;
   label: string;
   maxKey?: string;
+  always?: boolean;       // 始终显示；否则仅在已获得过时显示
 }
 
 const ROWS: RowDef[] = [
-  { key: 'grain', icon: '🌾', label: '粮食', maxKey: 'grain' },
-  { key: 'wood',  icon: '🪵', label: '木头', maxKey: 'wood' },
-  { key: 'gold',  icon: '💰', label: '金币' },
+  { key: 'grain', icon: '🌾', label: '粮食', maxKey: 'grain', always: true },
+  { key: 'wood',  icon: '🪵', label: '木头', maxKey: 'wood', always: true },
+  { key: 'gold',  icon: '💰', label: '金币', always: true },
+  { key: 'water', icon: '💧', label: '清水' },
+  { key: 'rice',  icon: '🍚', label: '精米' },
+  { key: 'wine',  icon: '🍶', label: '米酒' },
 ];
 
 export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
@@ -57,7 +61,11 @@ export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4 text-sm">
-      {ROWS.map(({ key, icon, label, maxKey }) => {
+      {ROWS.filter(({ key, always }) => {
+        if (always) return true;
+        const r = resources[key];
+        return r && (r.amount > 0 || r.totalEarned > 0);
+      }).map(({ key, icon, label, maxKey }) => {
         const res = resources[key];
         const perSec = res.perSecond;
         const max = maxKey === 'grain' ? grainMax : maxKey === 'wood' ? woodMax : undefined;
@@ -126,19 +134,4 @@ export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
         </button>
         <button
           onClick={() => { if (confirm('确定要重置所有进度？此操作不可恢复！')) onReset(); }}
-          className="flex-1 py-1.5 text-xs rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
-        >
-          重置
-        </button>
-        <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
-      </div>
-    </div>
-  );
-}
-
-function fmt(n: number): string {
-  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-  if (n >= 1e4) return (n / 1e3).toFixed(1) + 'K';
-  if (n >= 100) return Math.floor(n).toString();
-  return n.toFixed(1);
-}
+          className="flex-1 py-1.5 text-xs rounded bg-red-50 text-re

@@ -26,29 +26,7 @@ export class BuildingSystem implements GameSystem {
   tick(dt: number, state: GameState): void {
     if (!this.resourceSystem) return;
 
-    // 遍历所有建筑，计算并产出
-    for (const def of Object.values(BUILDINGS)) {
-      const buildingState = state.buildings[def.id as keyof GameState['buildings']];
-      if (!buildingState || buildingState.count === 0) continue;
-      if (!this.isUnlocked(def.id, state)) continue;
-
-      // 计算总产量：建筑数量 × 单产 × 科技倍率 × 时间
-      for (const [resId, baseRate] of Object.entries(def.production)) {
-        const multiplier = getTechMultiplier(state, 'multiply_production', def.id);
-        const amount = buildingState.count * baseRate * multiplier * dt;
-        if (amount > 0) {
-          this.resourceSystem.addResource(state, resId, amount);
-        }
-      }
-    }
-
-    // 更新每秒产量用于 UI 显示
-    this.updatePerSecond(state);
-  }
-
-  /** 计算每个资源的每秒产量 */
-  private updatePerSecond(state: GameState): void {
-    // 重置
+    // 每 tick 由建筑系统重置 perSecond，随后各系统（含帮工）按实际产出累加
     for (const key of Object.keys(state.resources) as Array<keyof GameState['resources']>) {
       state.resources[key].perSecond = 0;
     }
@@ -58,11 +36,55 @@ export class BuildingSystem implements GameSystem {
       if (!buildingState || buildingState.count === 0) continue;
       if (!this.isUnlocked(def.id, state)) continue;
 
+      const count = buildingState.count;
       const multiplier = getTechMultiplier(state, 'multiply_production', def.id);
-      for (const [resId, baseRate] of Object.entries(def.production)) {
-        const res = state.resources[resId as keyof GameState['resources']];
-        if (!res) continue;
-        res.perSecond += buildingState.count * baseRate * multiplier;
+      const consumes = def.consumes;
+      const isConverter = !!consumes && Object.keys(consumes).length > 0;
+
+      if (isConverter) {
+        // —— 加工建筑：按瓶颈比例运转 ——
+        // 比例 = 各投入资源「现有量 / 本 tick 需求量」的最小值，封顶 1
+        let ratio = 1;
+        for (const [resId, rate] of Object.entries(consumes!)) {
+          const need = count * rate * dt;
+          if (need <= 0) continue;
+          const have = state.resources[resId as keyof GameState['resources']]?.amount ?? 0;
+          ratio = Math.min(ratio, have / need);
+        }
+        if (ratio < 0) ratio = 0;
+
+        if (ratio > 0) {
+          // 消耗投入（夹取上限，规避浮点误差）
+          for (const [resId, rate] of Object.entries(consumes!)) {
+            const res = state.resources[resId as keyof GameState['resources']];
+            if (!res) continue;
+            const used = Math.min(count * rate * dt * ratio, res.amount);
+            if (used > 0) this.resourceSystem.spendResource(state, resId, used);
+          }
+          // 产出成品
+          for (const [resId, rate] of Object.entries(def.production)) {
+            const amount = count * rate * dt * ratio * multiplier;
+            if (amount > 0) this.resourceSystem.addResource(state, resId, amount);
+          }
+        }
+
+        // perSecond：投入计负、产出计正，均按当前比例反映真实吞吐
+        for (const [resId, rate] of Object.entries(consumes!)) {
+          const res = state.resources[resId as keyof GameState['resources']];
+          if (res) res.perSecond -= count * rate * ratio;
+        }
+        for (const [resId, rate] of Object.entries(def.production)) {
+          const res = state.resources[resId as keyof GameState['resources']];
+          if (res) res.perSecond += count * rate * ratio * multiplier;
+        }
+      } else {
+        // —— 普通生产建筑：无中生有 ——
+        for (const [resId, baseRate] of Object.entries(def.production)) {
+          const amount = count * baseRate * multiplier * dt;
+          if (amount > 0) this.resourceSystem.addResource(state, resId, amount);
+          const res = state.resources[resId as keyof GameState['resources']];
+          if (res) res.perSecond += count * baseRate * multiplier;
+        }
       }
     }
   }
@@ -78,41 +100,4 @@ export class BuildingSystem implements GameSystem {
     if (!canAffordBuilding(def, state)) return false;
     if (!this.isUnlocked(buildingId, state)) return false;
 
-    const cost = getBuildingCost(def, state);
-    if (!this.resourceSystem!.spendResources(state, cost)) return false;
-
-    const buildingState = state.buildings[buildingId as keyof GameState['buildings']];
-    if (!buildingState) return false;
-    buildingState.count++;
-
-    this.events?.emit(GameEvents.BUILDING_BUILT, { buildingId });
-    return true;
-  }
-
-  /** 检查建筑是否已解锁 */
-  private isUnlocked(buildingId: string, state: GameState): boolean {
-    const def = BUILDINGS[buildingId];
-    if (!def?.requires) return true;
-    return def.requires.every(
-      (req) => state.techs[req as keyof GameState['techs']]?.unlocked ?? false
-    );
-  }
-
-  /** 建筑是否可见（前置科技已满足，也许还未买） */
-  isVisible(buildingId: string, state: GameState): boolean {
-    const def = BUILDINGS[buildingId];
-    if (!def) return false;
-    if (!def.requires) return true;
-    return this.getUnlockedCount(buildingId, state) > 0;
-  }
-
-  /** 这个建筑有几个可能被解锁 */
-  private getUnlockedCount(_buildingId: string, state: GameState): number {
-    const def = BUILDINGS[_buildingId];
-    if (!def?.requires) return 1;
-    const allMet = def.requires.every(
-      (req) => state.techs[req as keyof GameState['techs']]?.unlocked ?? false
-    );
-    return allMet ? 1 : 0;
-  }
-}
+    
