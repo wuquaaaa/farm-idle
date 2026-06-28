@@ -1,6 +1,5 @@
 // ============================================================
-// 建筑定义 — 静态数据，定义每种建筑的属性
-// 加新建筑只需在这里加一项，BuildingSystem 自动识别
+// 建筑定义
 // ============================================================
 
 import type { GameState } from '../core/state';
@@ -10,13 +9,9 @@ export interface BuildingDef {
   name: string;
   description: string;
   icon: string;
-  /** 基础造价 — 第1个的价格 */
   baseCost: Partial<Record<keyof GameState['resources'], number>>;
-  /** 每个建筑的价格倍率，实际价格 = baseCost * multiplier^count */
   costMultiplier: number;
-  /** 每个建筑每秒的产出 */
   production: Partial<Record<keyof GameState['resources'], number>>;
-  /** 需要解锁的科技 ID */
   requires?: string[];
 }
 
@@ -24,7 +19,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
   farmland: {
     id: 'farmland',
     name: '农田',
-    description: '开垦一块田地，每块农田每秒产出 0.5 粮食',
+    description: '开垦一块田地，每块每秒产出 0.5 粮食',
     icon: '🌱',
     baseCost: { grain: 10 },
     costMultiplier: 1.15,
@@ -33,7 +28,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
   mill: {
     id: 'mill',
     name: '磨坊',
-    description: '将粮食加工成金币，每间磨坊每秒产出 0.3 金币',
+    description: '将粮食加工成金币，每间每秒产出 0.3 金币',
     icon: '🏭',
     baseCost: { grain: 50 },
     costMultiplier: 1.15,
@@ -42,20 +37,25 @@ export const BUILDINGS: Record<string, BuildingDef> = {
   granary: {
     id: 'granary',
     name: '粮仓',
-    description: '扩大粮食储存上限 +500，越大越安稳',
+    description: '扩大粮食储存上限 +500',
     icon: '🏚️',
     baseCost: { grain: 100 },
     costMultiplier: 1.2,
     production: {},
     requires: ['bigGranary'],
   },
+  hut: {
+    id: 'hut',
+    name: '小屋',
+    description: '提供 1 个帮工空位，可招募帮工',
+    icon: '🏠',
+    baseCost: { wood: 5 },
+    costMultiplier: 1.3,
+    production: {},
+  },
 };
 
-/** 获取建筑的当前购买价格 */
-export function getBuildingCost(
-  def: BuildingDef,
-  state: GameState
-): Record<string, number> {
+export function getBuildingCost(def: BuildingDef, state: GameState): Record<string, number> {
   const count = state.buildings[def.id as keyof GameState['buildings']]?.count ?? 0;
   const cost: Record<string, number> = {};
   for (const [res, base] of Object.entries(def.baseCost)) {
@@ -64,11 +64,7 @@ export function getBuildingCost(
   return cost;
 }
 
-/** 检查是否有足够资源购买 */
-export function canAffordBuilding(
-  def: BuildingDef,
-  state: GameState
-): boolean {
+export function canAffordBuilding(def: BuildingDef, state: GameState): boolean {
   const cost = getBuildingCost(def, state);
   for (const [res, amount] of Object.entries(cost)) {
     const owned = state.resources[res as keyof GameState['resources']]?.amount ?? 0;

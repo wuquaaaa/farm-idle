@@ -1,5 +1,5 @@
 // ============================================================
-// WorkerSystem — 管理帮工雇佣与产出
+// WorkerSystem — 帮工招募、消耗粮食、分配岗位产出
 // ============================================================
 
 import type { GameState } from '../state';
@@ -7,8 +7,11 @@ import type { EventBus } from '../eventBus';
 import { GameEvents } from '../eventBus';
 import type { GameSystem } from './types';
 import type { ResourceSystem } from './resourceSystem';
-import { WORKER_DEFS } from '../../data/workers';
-import { getTechMultiplier } from '../../data/techs';
+
+const HIRE_BASE_COST = 50;
+const HIRE_COST_MULT = 1.25;
+const FARMLAND_OUTPUT = 0.5;
+const LUMBER_OUTPUT = 0.05;
 
 export class WorkerSystem implements GameSystem {
   id = 'worker';
@@ -27,39 +30,77 @@ export class WorkerSystem implements GameSystem {
     if (!this.resourceSystem) return;
     if (state.workers.count === 0) return;
 
-    // 计算科技加成后的产出
-    const def = WORKER_DEFS.farmhand;
-    const techMult = getTechMultiplier(state, 'multiply_production', 'worker');
-    const perWorkerRate = def.grainPerSecond * techMult;
-    const total = state.workers.count * perWorkerRate * dt;
-
-    if (total > 0) {
-      this.resourceSystem.addResource(state, 'grain', total);
+    // 1. 所有帮工消耗粮食
+    const totalFoodCost = state.workers.count * state.workers.foodPerSec * dt;
+    if (totalFoodCost > 0) {
+      this.resourceSystem.spendResource(state, 'grain', totalFoodCost);
     }
+
+    // 2. 已分配帮工产出
+    if (state.workers.allocatedFarmland > 0) {
+      const amount = state.workers.allocatedFarmland * FARMLAND_OUTPUT * dt;
+      this.resourceSystem.addResource(state, 'grain', amount);
+    }
+    if (state.workers.allocatedLumber > 0) {
+      const amount = state.workers.allocatedLumber * LUMBER_OUTPUT * dt;
+      this.resourceSystem.addResource(state, 'wood', amount);
+    }
+
+    // 3. 更新每秒产量
+    this.updatePerSecond(state);
+  }
+
+  private updatePerSecond(state: GameState): void {
+    state.resources.grain.perSecond +=
+      state.workers.allocatedFarmland * FARMLAND_OUTPUT
+      - state.workers.count * state.workers.foodPerSec;
+    state.resources.wood.perSecond +=
+      state.workers.allocatedLumber * LUMBER_OUTPUT;
   }
 
   destroy(): void {
     this.events = null;
   }
 
-  /** 雇佣一个帮工 */
+  getCapacity(state: GameState): number {
+    return state.buildings.hut?.count ?? 0;
+  }
+
+  getIdleCount(state: GameState): number {
+    return state.workers.count - state.workers.allocatedFarmland - state.workers.allocatedLumber;
+  }
+
   hireWorker(state: GameState): boolean {
+    if (state.workers.count >= this.getCapacity(state)) return false;
     const cost = this.getHireCost(state);
     if (!this.resourceSystem!.spendResource(state, 'gold', cost)) return false;
-
     state.workers.count++;
     this.events?.emit(GameEvents.BUILDING_BUILT, { buildingId: 'worker' });
     return true;
   }
 
-  /** 获取当前雇佣花费 */
-  getHireCost(state: GameState): number {
-    const def = WORKER_DEFS.farmhand;
-    return Math.ceil(def.baseCost * Math.pow(def.costMultiplier, state.workers.count));
+  allocate(state: GameState, job: 'farmland' | 'lumber'): boolean {
+    if (this.getIdleCount(state) <= 0) return false;
+    if (job === 'farmland') {
+      state.workers.allocatedFarmland++;
+    } else {
+      state.workers.allocatedLumber++;
+    }
+    return true;
   }
 
-  /** 是否可以雇佣 */
-  canHire(state: GameState): boolean {
-    return state.resources.gold.amount >= this.getHireCost(state);
+  unallocate(state: GameState, job: 'farmland' | 'lumber'): boolean {
+    if (job === 'farmland') {
+      if (state.workers.allocatedFarmland <= 0) return false;
+      state.workers.allocatedFarmland--;
+    } else {
+      if (state.workers.allocatedLumber <= 0) return false;
+      state.workers.allocatedLumber--;
+    }
+    return true;
+  }
+
+  getHireCost(state: GameState): number {
+    return Math.ceil(HIRE_BASE_COST * Math.pow(HIRE_COST_MULT, state.workers.count));
   }
 }

@@ -1,6 +1,5 @@
 // ============================================================
-// 资源定义 — 静态数据，不参与运行时状态
-// 加新资源只需在这里加一项
+// 资源定义
 // ============================================================
 
 export interface ResourceDef {
@@ -15,12 +14,18 @@ export const RESOURCES: Record<string, ResourceDef> = {
     id: 'grain',
     name: '粮食',
     icon: '🌾',
-    description: '农田产出，可出售换取金币',
+    description: '农田产出，可供帮工食用或砍树换木头',
   },
   gold: {
     id: 'gold',
     name: '金币',
     icon: '💰',
-    description: '用于解锁科技，由出售粮食获得',
+    description: '用于解锁科技、招募帮工',
+  },
+  wood: {
+    id: 'wood',
+    name: '木头',
+    icon: '🪵',
+    description: '砍树获得，用于建造小屋',
   },
 };

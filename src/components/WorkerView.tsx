@@ -1,7 +1,5 @@
 import type { GameState } from '../core/state';
 import { ActionTypes } from '../core/systems/types';
-import { WORKER_DEFS } from '../data/workers';
-import { getTechMultiplier } from '../data/techs';
 
 interface Props {
   state: GameState;
@@ -9,70 +7,64 @@ interface Props {
 }
 
 export function WorkerView({ state, dispatch }: Props) {
-  const def = WORKER_DEFS.farmhand;
-  const count = state.workers.count;
-  const cost = getHireCost(state);
-
-  // 计算当前产出
-  const techMult = getTechMultiplier(state, 'multiply_production', 'worker');
-  const perWorker = def.grainPerSecond * techMult;
-  const totalPerSec = count * perWorker;
-
-  const canAfford = state.resources.gold.amount >= cost;
+  const w = state.workers;
+  const capacity = state.buildings.hut?.count ?? 0;
+  const idle = w.count - w.allocatedFarmland - w.allocatedLumber;
+  const canHire = capacity > 0 && w.count < capacity && state.resources.gold.amount >= getHireCost(state);
 
   return (
-    <div className="space-y-4">
-      {/* 帮工概况 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-5 text-center">
-        <div className="text-4xl mb-3">{def.icon}</div>
-        <h2 className="text-lg font-semibold text-stone-800 mb-1">{def.name}</h2>
-        <p className="text-sm text-stone-400">{def.description}</p>
-        <div className="mt-3 text-3xl font-bold text-farm-600">{count}</div>
-        <div className="text-xs text-stone-400 mt-1">已雇佣帮工</div>
+    <div className="space-y-3">
+      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-semibold text-stone-800">👨‍🌾 帮工</h2>
+          <span className="text-sm text-stone-400">{w.count}/{capacity} 人</span>
+        </div>
+        <p className="text-xs text-stone-400">每人每秒消耗 {w.foodPerSec.toFixed(1)} 🌾</p>
       </div>
 
-      {/* 产出信息 */}
-      <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4">
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <span className="text-stone-400">每个帮工</span>
-            <div className="font-semibold text-stone-800">
-              +{perWorker.toFixed(2)} 🌾/s
+      {w.count > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4">
+          <h3 className="text-sm font-medium text-stone-600 mb-3">岗位分配</h3>
+          <div className="flex items-center justify-between py-2 border-b border-stone-100">
+            <span className="text-sm text-stone-500">😴 空闲</span>
+            <span className="text-sm font-semibold text-stone-400">{idle} 人</span>
+          </div>
+          <div className="flex items-center justify-between py-2 border-b border-stone-100">
+            <span className="text-sm text-stone-700">🌾 农田</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-stone-800">{w.allocatedFarmland} 人</span>
+              <span className="text-xs text-stone-400">+{(w.allocatedFarmland * 0.5).toFixed(1)}/s</span>
+              <button onClick={() => dispatch(ActionTypes.UNALLOCATE_WORKER, { job: 'farmland' })} disabled={w.allocatedFarmland <= 0} className="px-2 py-0.5 text-xs rounded border border-stone-200 text-stone-500 hover:bg-stone-50 disabled:opacity-30">-1</button>
+              <button onClick={() => dispatch(ActionTypes.ALLOCATE_WORKER, { job: 'farmland' })} disabled={idle <= 0} className="px-2 py-0.5 text-xs rounded bg-farm-100 text-farm-700 hover:bg-farm-200 disabled:opacity-30">+1</button>
             </div>
           </div>
-          <div>
-            <span className="text-stone-400">总计产出</span>
-            <div className="font-semibold text-stone-800">
-              +{totalPerSec.toFixed(2)} 🌾/s
+          <div className="flex items-center justify-between py-2">
+            <span className="text-sm text-stone-700">🪓 伐木</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-stone-800">{w.allocatedLumber} 人</span>
+              <span className="text-xs text-stone-400">+{(w.allocatedLumber * 0.05).toFixed(2)}/s</span>
+              <button onClick={() => dispatch(ActionTypes.UNALLOCATE_WORKER, { job: 'lumber' })} disabled={w.allocatedLumber <= 0} className="px-2 py-0.5 text-xs rounded border border-stone-200 text-stone-500 hover:bg-stone-50 disabled:opacity-30">-1</button>
+              <button onClick={() => dispatch(ActionTypes.ALLOCATE_WORKER, { job: 'lumber' })} disabled={idle <= 0} className="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-700 hover:bg-amber-200 disabled:opacity-30">+1</button>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* 雇佣按钮 */}
       <button
         onClick={() => dispatch(ActionTypes.HIRE_WORKER)}
-        disabled={!canAfford}
-        className={`w-full py-4 rounded-xl text-base font-semibold transition-all
-          ${canAfford
-            ? 'bg-farm-500 text-white hover:bg-farm-600 active:scale-[0.98] shadow-sm'
-            : 'bg-stone-100 text-stone-400 cursor-not-allowed'
-          }`}
+        disabled={!canHire}
+        className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${canHire ? 'bg-farm-500 text-white hover:bg-farm-600 active:scale-[0.98] shadow-sm' : 'bg-stone-100 text-stone-400'}`}
       >
-        雇佣帮工 — 💰 {cost.toFixed(0)}
+        {capacity === 0 ? '需要先建造小屋' : w.count >= capacity ? '小屋已满' : `招募帮工 — 💰${getHireCost(state).toFixed(0)}`}
       </button>
 
-      {/* 提示 */}
-      {count > 0 && (
-        <div className="text-xs text-stone-400 text-center">
-          下一个帮工花费 💰 {cost.toFixed(0)}，每人产出 +{perWorker.toFixed(2)} 🌾/s
-        </div>
+      {capacity === 0 && (
+        <div className="text-xs text-stone-400 text-center">去「建造」标签用 🪵5 建造小屋，提供帮工空位</div>
       )}
     </div>
   );
 }
 
 function getHireCost(state: GameState): number {
-  const def = WORKER_DEFS.farmhand;
-  return Math.ceil(def.baseCost * Math.pow(def.costMultiplier, state.workers.count));
+  return Math.ceil(50 * Math.pow(1.25, state.workers.count));
 }

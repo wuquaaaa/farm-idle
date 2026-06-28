@@ -1,6 +1,5 @@
 // ============================================================
-// GameEngine — 游戏主循环，管理 tick 节奏和系统生命周期
-// 后期加系统：new YourSystem() → engine.registerSystem(system)
+// GameEngine — 游戏主循环
 // ============================================================
 
 import type { GameState } from './state';
@@ -31,11 +30,9 @@ export class GameEngine {
 
   constructor(systems: GameSystem[], savedState: GameState | null | undefined) {
     this.saveManager = new SaveManager();
-
     for (const sys of systems) {
       this.registerSystem(sys);
     }
-
     if (savedState) {
       this.state = savedState;
       this.calculateOfflineProgress();
@@ -53,9 +50,7 @@ export class GameEngine {
     return this.systems.find(s => s.id === id) as T | undefined;
   }
 
-  onStateChange(callback: () => void): void {
-    this.stateCallback = callback;
-  }
+  onStateChange(callback: () => void): void { this.stateCallback = callback; }
 
   start(): void {
     if (this.running) return;
@@ -68,23 +63,17 @@ export class GameEngine {
 
   private tick(): void {
     const now = Date.now();
-    const realDt = (now - this.lastTickRealTime) / 1000;
+    const dt = Math.min((now - this.lastTickRealTime) / 1000, MAX_TICK_DT_SEC);
     this.lastTickRealTime = now;
-    const dt = Math.min(realDt, MAX_TICK_DT_SEC);
     this.state.stats.playTimeMs += dt * 1000;
-
-    for (const system of this.systems) {
-      system.tick(dt, this.state);
-    }
-
+    for (const system of this.systems) system.tick(dt, this.state);
     this.eventBus.emit(GameEvents.STATE_UPDATED);
     this.stateCallback?.();
   }
 
   processClick(): void {
     const rs = this.findSystem<ResourceSystem>('resource')!;
-    const clickValue = rs.getClickValue(this.state);
-    rs.addResource(this.state, 'grain', clickValue);
+    rs.addResource(this.state, 'grain', rs.getClickValue(this.state));
     this.state.stats.totalClicks++;
     this.updateClickPower();
     this.stateCallback?.();
@@ -93,28 +82,39 @@ export class GameEngine {
   processAction(type: string, payload?: Record<string, unknown>): void {
     switch (type) {
       case ActionTypes.BUY_BUILDING: {
-        const bs = this.findSystem<BuildingSystem>('building')!;
-        bs.buyBuilding(this.state, payload?.buildingId as string);
+        this.findSystem<BuildingSystem>('building')!.buyBuilding(this.state, payload?.buildingId as string);
         break;
       }
       case ActionTypes.UNLOCK_TECH: {
-        const ts = this.findSystem<TechSystem>('tech')!;
-        ts.unlockTech(this.state, payload?.techId as string);
+        this.findSystem<TechSystem>('tech')!.unlockTech(this.state, payload?.techId as string);
         break;
       }
       case ActionTypes.SELL_GRAIN: {
-        const ms = this.findSystem<MarketSystem>('market')!;
-        ms.sellGrain(this.state, payload?.amount as number);
+        this.findSystem<MarketSystem>('market')!.sellGrain(this.state, payload?.amount as number);
         break;
       }
       case ActionTypes.SELL_ALL_GRAIN: {
-        const ms = this.findSystem<MarketSystem>('market')!;
-        ms.sellAllGrain(this.state);
+        this.findSystem<MarketSystem>('market')!.sellAllGrain(this.state);
         break;
       }
       case ActionTypes.HIRE_WORKER: {
-        const ws = this.findSystem<WorkerSystem>('worker')!;
-        ws.hireWorker(this.state);
+        this.findSystem<WorkerSystem>('worker')!.hireWorker(this.state);
+        break;
+      }
+      case ActionTypes.CHOP_WOOD: {
+        const rs = this.findSystem<ResourceSystem>('resource')!;
+        if (rs.spendResource(this.state, 'grain', 100)) {
+          rs.addResource(this.state, 'wood', 1);
+          this.state.stats.totalChops++;
+        }
+        break;
+      }
+      case ActionTypes.ALLOCATE_WORKER: {
+        this.findSystem<WorkerSystem>('worker')!.allocate(this.state, payload?.job as 'farmland' | 'lumber');
+        break;
+      }
+      case ActionTypes.UNALLOCATE_WORKER: {
+        this.findSystem<WorkerSystem>('worker')!.unallocate(this.state, payload?.job as 'farmland' | 'lumber');
         break;
       }
     }
@@ -124,14 +124,10 @@ export class GameEngine {
 
   private updateClickPower(): void {
     const rs = this.findSystem<ResourceSystem>('resource');
-    if (rs) {
-      this.state.stats.clickPower = rs.getClickValue(this.state);
-    }
+    if (rs) this.state.stats.clickPower = rs.getClickValue(this.state);
   }
 
-  getState(): Readonly<GameState> {
-    return this.state;
-  }
+  getState(): Readonly<GameState> { return this.state; }
 
   save(): void {
     this.state.stats.lastSavedAt = Date.now();
@@ -142,9 +138,7 @@ export class GameEngine {
     this.running = false;
     if (this.tickTimer) { clearInterval(this.tickTimer); this.tickTimer = null; }
     this.save();
-    for (const system of this.systems) {
-      system.destroy();
-    }
+    for (const system of this.systems) system.destroy();
   }
 
   reset(): void {
@@ -158,10 +152,7 @@ export class GameEngine {
     const now = Date.now();
     const elapsed = (now - this.state.stats.lastSavedAt) / 1000;
     if (elapsed <= 5) return;
-    const offlineTime = Math.min(elapsed, 14400);
-    for (const system of this.systems) {
-      system.tick(offlineTime, this.state);
-    }
+    for (const system of this.systems) system.tick(Math.min(elapsed, 14400), this.state);
     this.save();
   }
 }
