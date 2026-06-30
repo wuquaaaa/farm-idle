@@ -56,6 +56,7 @@ export interface Techs {
   improvedSeeds: TechState;
   cropRotation: TechState;
   sharpAxe: TechState;
+  papermaking: TechState;
   ceramics: TechState;         // 陶冶术：开启储量链
   ironworking: TechState;      // 冶铁术：开启铁矿链
   irrigation: TechState;
@@ -95,7 +96,7 @@ export interface GameState {
 
 export function createInitialState(): GameState {
   return {
-    version: 11,
+    version: 12,
     resources: {
       grain: { amount: 0, totalEarned: 0, perSecond: 0 },
       wood: { amount: 0, totalEarned: 0, perSecond: 0 },
@@ -130,6 +131,7 @@ export function createInitialState(): GameState {
       improvedSeeds: { unlocked: false },
       cropRotation: { unlocked: false },
       sharpAxe: { unlocked: false },
+      papermaking: { unlocked: false },
       ceramics: { unlocked: false },
       ironworking: { unlocked: false },
       irrigation: { unlocked: false },

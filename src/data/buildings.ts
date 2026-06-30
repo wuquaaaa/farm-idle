@@ -45,6 +45,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     consumes: { wood: 1 },
     production: { paper: 0.5 },
     job: 'artisan',
+    requires: ['papermaking'],
   },
   bookbindery: {
     id: 'bookbindery',

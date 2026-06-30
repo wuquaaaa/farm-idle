@@ -38,39 +38,43 @@ export function ProductionView({ state, dispatch }: Props) {
     <div className="space-y-3">
       <CalendarBanner state={state} />
 
-      {/* 动作 + 建筑：同一种瓷砖风格，一行两个 */}
+      {/* 动作瓷砖：与建筑卡同款（底部一个按钮） */}
       <div className="grid grid-cols-2 gap-3">
-        {/* 收集粮食 */}
-        <button
-          onClick={harvest}
-          className="relative bg-white rounded-xl shadow-sm border border-stone-200 p-3 flex flex-col text-left
-                     hover:border-farm-300 active:scale-[0.98] transition-all"
-        >
+        <div className="relative bg-white rounded-xl shadow-sm border border-stone-200 p-3 flex flex-col">
           <h3 className="font-medium text-sm text-stone-800">🌾 收集粮食</h3>
-          <p className="text-[11px] text-stone-400 mt-0.5 flex-1">亲手采集，积少成多</p>
-          <div className="mt-2 text-[11px] font-medium text-farm-600">+{clickPower} 🌾</div>
+          <p className="text-[11px] text-stone-400 mt-0.5 leading-snug flex-1">亲手采集，积少成多</p>
+          <button
+            onClick={harvest}
+            className="mt-2 w-full py-1.5 rounded-lg text-[11px] font-medium bg-farm-500 text-white
+                       hover:bg-farm-600 active:scale-[0.98] transition-all"
+          >
+            收集 +{clickPower}🌾
+          </button>
           {effects.filter((e) => e.type === 'harvest').map(({ id }) => (
             <span key={id} className="absolute top-2 right-3 pointer-events-none text-farm-500 font-bold text-sm animate-click">+{clickPower}</span>
           ))}
-        </button>
+        </div>
 
-        {/* 砍树 */}
-        <button
-          onClick={chop}
-          disabled={!canChop}
-          className={`relative bg-white rounded-xl shadow-sm border p-3 flex flex-col text-left transition-all
-            ${canChop ? 'border-stone-200 hover:border-amber-300 active:scale-[0.98]' : 'border-stone-200 opacity-60'}`}
-        >
+        <div className="relative bg-white rounded-xl shadow-sm border border-stone-200 p-3 flex flex-col">
           <h3 className="font-medium text-sm text-stone-800">🪓 砍树</h3>
-          <p className="text-[11px] text-stone-400 mt-0.5 flex-1">砍伐林木，换取木材</p>
-          <div className={`mt-2 text-[11px] font-medium ${canChop ? 'text-amber-600' : 'text-stone-400'}`}>-100🌾 → +1🪵</div>
+          <p className="text-[11px] text-stone-400 mt-0.5 leading-snug flex-1">砍伐林木，换取木材</p>
+          <button
+            onClick={chop}
+            disabled={!canChop}
+            className={`mt-2 w-full py-1.5 rounded-lg text-[11px] font-medium transition-all
+              ${canChop
+                ? 'bg-amber-500 text-white hover:bg-amber-600 active:scale-[0.98]'
+                : 'bg-stone-100 text-stone-400 cursor-not-allowed'}`}
+          >
+            砍树 -100🌾→+1🪵
+          </button>
           {effects.filter((e) => e.type === 'wood').map(({ id }) => (
             <span key={id} className="absolute top-2 right-3 pointer-events-none text-amber-500 font-bold text-sm animate-click">+1🪵</span>
           ))}
-        </button>
+        </div>
       </div>
 
-      {/* 建筑（同样 grid 两列，与上面动作瓷砖连成一片） */}
+      {/* 建筑 */}
       <BuildView state={state} dispatch={dispatch} />
     </div>
   );

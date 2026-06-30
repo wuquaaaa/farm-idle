@@ -75,6 +75,14 @@ export const TECHS: Record<string, TechDef> = {
     requires: ['cropRotation'],
     effects: [{ type: 'multiply_production', target: 'farmland', multiplier: 2 }],
   },
+  papermaking: {
+    id: 'papermaking',
+    name: '造纸术',
+    description: '解锁造纸坊，木材可抄造成纸',
+    icon: '📄',
+    cost: { culture: 50 },
+    effects: [{ type: 'unlock_building', target: 'papermill' }],
+  },
   ironworking: {
     id: 'ironworking',
     name: '冶铁术',
