@@ -34,7 +34,7 @@ export const TECHS: Record<string, TechDef> = {
     name: '良种培育',
     description: '选育良种，每次收获翻倍',
     icon: '🌿',
-    cost: { paper: 15 },
+    cost: { grain: 200 },
     effects: [{ type: 'multiply_click', target: 'grain', multiplier: 2 }],
   },
   cropRotation: {
@@ -50,7 +50,7 @@ export const TECHS: Record<string, TechDef> = {
     name: '利斧',
     description: '锻造利斧，林场产量 ×2',
     icon: '🪓',
-    cost: { paper: 30 },
+    cost: { wood: 150 },
     effects: [{ type: 'multiply_production', target: 'woodcamp', multiplier: 2 }],
   },
   ceramics: {

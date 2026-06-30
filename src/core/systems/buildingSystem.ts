@@ -14,6 +14,7 @@ import type { ResourceSystem } from './resourceSystem';
 
 const TOOL_WEAR_RATE = 0.02;  // 每座 toolBoost 建筑每秒磨损的农具
 const TOOL_BONUS = 0.5;        // 农具满供时的增产幅度（×1.5）
+const WORKER_BONUS = 1.0;      // 岗位满员(约1人/座)时的增产幅度（×2）
 
 export class BuildingSystem implements GameSystem {
   id = 'building';
@@ -58,6 +59,23 @@ export class BuildingSystem implements GameSystem {
       if (toolsRes) toolsRes.perSecond -= (toolUpkeep / dt) * coverage;
     }
 
+    // —— 岗位劳力：统计各岗位的建筑数，用于按「工人/建筑」比给增产 ——
+    const jobBuildings: Record<string, number> = {};
+    for (const def of Object.values(BUILDINGS)) {
+      if (!def.job) continue;
+      const bs = state.buildings[def.id as keyof GameState['buildings']];
+      if (!bs || bs.count === 0) continue;
+      if (!this.isUnlocked(def.id, state)) continue;
+      jobBuildings[def.job] = (jobBuildings[def.job] ?? 0) + bs.count;
+    }
+    const laborMult = (job: string | undefined): number => {
+      if (!job) return 1;
+      const bcount = jobBuildings[job] ?? 0;
+      if (bcount <= 0) return 1;
+      const assigned = (state.workers.allocation as Record<string, number>)[job] ?? 0;
+      return 1 + WORKER_BONUS * Math.min(1, assigned / bcount);
+    };
+
     for (const def of Object.values(BUILDINGS)) {
       const buildingState = state.buildings[def.id as keyof GameState['buildings']];
       if (!buildingState || buildingState.count === 0) continue;
@@ -71,7 +89,8 @@ export class BuildingSystem implements GameSystem {
       const multiplier =
         getTechMultiplier(state, 'multiply_production', def.id)
         * getSeasonMultiplier(state, isConverter)
-        * tf;
+        * tf
+        * laborMult(def.job);
 
       if (isConverter) {
         // —— 加工建筑：按瓶颈比例运转 ——

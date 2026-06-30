@@ -60,7 +60,11 @@ function migrate(saved: Partial<GameState>): GameState {
     resources: { ...base.resources, ...(saved.resources ?? {}) },
     buildings: { ...base.buildings, ...(saved.buildings ?? {}) },
     techs: { ...base.techs, ...(saved.techs ?? {}) },
-    workers: { ...base.workers, ...(saved.workers ?? {}) },
+    workers: {
+      ...base.workers,
+      ...(saved.workers ?? {}),
+      allocation: { ...base.workers.allocation, ...(saved.workers?.allocation ?? {}) },
+    },
     calendar: { ...base.calendar, ...(saved.calendar ?? {}) },
     stats: { ...base.stats, ...(saved.stats ?? {}) },
   };

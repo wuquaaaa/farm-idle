@@ -1,16 +1,15 @@
 // ============================================================
-// WorkerSystem — 帮工招募、消耗粮食、分配岗位产出
-// 招募免费：受 小屋名额 + 持续吃粮 两道约束即可
+// WorkerSystem — 帮工招募、岗位分配、吃粮
+// 工人不再直接产出，而是通过 BuildingSystem 按「岗位工人/建筑」给对应建筑增产
 // ============================================================
 
-import type { GameState } from '../state';
+import type { GameState, JobId } from '../state';
 import type { EventBus } from '../eventBus';
 import { GameEvents } from '../eventBus';
 import type { GameSystem } from './types';
 import type { ResourceSystem } from './resourceSystem';
 
-const FARMLAND_OUTPUT = 0.5;
-const LUMBER_OUTPUT = 0.05;
+export const JOBS: JobId[] = ['farmer', 'woodcutter', 'miner', 'artisan'];
 
 export class WorkerSystem implements GameSystem {
   id = 'worker';
@@ -29,32 +28,12 @@ export class WorkerSystem implements GameSystem {
     if (!this.resourceSystem) return;
     if (state.workers.count === 0) return;
 
-    // 1. 所有帮工消耗粮食
-    const totalFoodCost = state.workers.count * state.workers.foodPerSec * dt;
-    if (totalFoodCost > 0) {
-      this.resourceSystem.spendResource(state, 'grain', totalFoodCost);
+    // 口粮：所有帮工每秒吃粮
+    const food = state.workers.count * state.workers.foodPerSec;
+    if (food > 0) {
+      this.resourceSystem.spendResource(state, 'grain', food * dt);
+      state.resources.grain.perSecond -= food;
     }
-
-    // 2. 已分配帮工产出
-    if (state.workers.allocatedFarmland > 0) {
-      const amount = state.workers.allocatedFarmland * FARMLAND_OUTPUT * dt;
-      this.resourceSystem.addResource(state, 'grain', amount);
-    }
-    if (state.workers.allocatedLumber > 0) {
-      const amount = state.workers.allocatedLumber * LUMBER_OUTPUT * dt;
-      this.resourceSystem.addResource(state, 'wood', amount);
-    }
-
-    // 3. 更新每秒产量
-    this.updatePerSecond(state);
-  }
-
-  private updatePerSecond(state: GameState): void {
-    state.resources.grain.perSecond +=
-      state.workers.allocatedFarmland * FARMLAND_OUTPUT
-      - state.workers.count * state.workers.foodPerSec;
-    state.resources.wood.perSecond +=
-      state.workers.allocatedLumber * LUMBER_OUTPUT;
   }
 
   destroy(): void {
@@ -65,8 +44,12 @@ export class WorkerSystem implements GameSystem {
     return state.buildings.hut?.count ?? 0;
   }
 
+  getAllocated(state: GameState): number {
+    return JOBS.reduce((sum, j) => sum + (state.workers.allocation[j] ?? 0), 0);
+  }
+
   getIdleCount(state: GameState): number {
-    return state.workers.count - state.workers.allocatedFarmland - state.workers.allocatedLumber;
+    return state.workers.count - this.getAllocated(state);
   }
 
   /** 招募帮工：免费，只要还有空余小屋名额 */
@@ -77,24 +60,16 @@ export class WorkerSystem implements GameSystem {
     return true;
   }
 
-  allocate(state: GameState, job: 'farmland' | 'lumber'): boolean {
+  allocate(state: GameState, job: JobId): boolean {
     if (this.getIdleCount(state) <= 0) return false;
-    if (job === 'farmland') {
-      state.workers.allocatedFarmland++;
-    } else {
-      state.workers.allocatedLumber++;
-    }
+    if (!JOBS.includes(job)) return false;
+    state.workers.allocation[job] = (state.workers.allocation[job] ?? 0) + 1;
     return true;
   }
 
-  unallocate(state: GameState, job: 'farmland' | 'lumber'): boolean {
-    if (job === 'farmland') {
-      if (state.workers.allocatedFarmland <= 0) return false;
-      state.workers.allocatedFarmland--;
-    } else {
-      if (state.workers.allocatedLumber <= 0) return false;
-      state.workers.allocatedLumber--;
-    }
+  unallocate(state: GameState, job: JobId): boolean {
+    if ((state.workers.allocation[job] ?? 0) <= 0) return false;
+    state.workers.allocation[job]--;
     return true;
   }
 }

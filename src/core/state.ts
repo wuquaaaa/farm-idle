@@ -70,10 +70,11 @@ export interface Stats {
   clickPower: number;
 }
 
+export type JobId = 'farmer' | 'woodcutter' | 'miner' | 'artisan';
+
 export interface Workers {
   count: number;
-  allocatedFarmland: number;
-  allocatedLumber: number;
+  allocation: Record<JobId, number>;  // 各岗位分配的人数
   foodPerSec: number;
 }
 
@@ -89,7 +90,7 @@ export interface GameState {
 
 export function createInitialState(): GameState {
   return {
-    version: 7,
+    version: 8,
     resources: {
       grain: { amount: 0, totalEarned: 0, perSecond: 0 },
       wood: { amount: 0, totalEarned: 0, perSecond: 0 },
@@ -131,8 +132,7 @@ export function createInitialState(): GameState {
     },
     workers: {
       count: 0,
-      allocatedFarmland: 0,
-      allocatedLumber: 0,
+      allocation: { farmer: 0, woodcutter: 0, miner: 0, artisan: 0 },
       foodPerSec: 0.1,
     },
     calendar: {

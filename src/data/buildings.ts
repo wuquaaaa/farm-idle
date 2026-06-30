@@ -1,8 +1,8 @@
 // ============================================================
-// 建筑定义 —— 农耕造纸 + 铁矿链
+// 建筑定义 —— 农耕造纸 + 铁矿链 + 储量链；建筑挂岗位(劳力增产)
 // ============================================================
 
-import type { GameState } from '../core/state';
+import type { GameState, JobId } from '../core/state';
 
 export interface BuildingDef {
   id: string;
@@ -11,12 +11,12 @@ export interface BuildingDef {
   icon: string;
   baseCost: Partial<Record<keyof GameState['resources'], number>>;
   costMultiplier: number;
-  /** 每座建筑每秒产出（无中生有 或 加工产出） */
   production: Partial<Record<keyof GameState['resources'], number>>;
-  /** 每座建筑每秒投入（存在则为加工建筑，按瓶颈降速运转） */
   consumes?: Partial<Record<keyof GameState['resources'], number>>;
-  /** 该建筑享受农具增产，并按数量消耗农具维护（磨损） */
+  /** 该建筑享受农具增产，并按数量磨损农具 */
   toolBoost?: boolean;
+  /** 该建筑所属岗位：分配对应工人可增产（满员约 1 人/座 → ×2） */
+  job?: JobId;
   requires?: string[];
 }
 
@@ -30,6 +30,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     costMultiplier: 1.15,
     production: { grain: 0.5 },
     toolBoost: true,
+    job: 'farmer',
   },
   woodcamp: {
     id: 'woodcamp',
@@ -40,6 +41,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     costMultiplier: 1.18,
     production: { wood: 0.3 },
     toolBoost: true,
+    job: 'woodcutter',
   },
   papermill: {
     id: 'papermill',
@@ -50,6 +52,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     costMultiplier: 1.18,
     consumes: { wood: 1 },
     production: { paper: 0.5 },
+    job: 'artisan',
   },
   bookbindery: {
     id: 'bookbindery',
@@ -60,6 +63,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     costMultiplier: 1.2,
     consumes: { paper: 2 },
     production: { books: 1 },
+    job: 'artisan',
     requires: ['printing'],
   },
 
@@ -73,6 +77,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     costMultiplier: 1.18,
     consumes: { wood: 2 },
     production: { charcoal: 1 },
+    job: 'artisan',
     requires: ['ironworking'],
   },
   mine: {
@@ -83,6 +88,8 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     baseCost: { grain: 80, wood: 20 },
     costMultiplier: 1.18,
     production: { ore: 0.2 },
+    toolBoost: true,
+    job: 'miner',
     requires: ['ironworking'],
   },
   ironfurnace: {
@@ -94,6 +101,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     costMultiplier: 1.2,
     consumes: { ore: 2, charcoal: 1 },
     production: { iron: 1 },
+    job: 'artisan',
     requires: ['ironworking'],
   },
   smithy: {
@@ -105,6 +113,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     costMultiplier: 1.2,
     consumes: { iron: 2 },
     production: { tools: 1 },
+    job: 'artisan',
     requires: ['ironworking'],
   },
 
@@ -117,6 +126,8 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     baseCost: { grain: 60 },
     costMultiplier: 1.18,
     production: { clay: 0.25 },
+    toolBoost: true,
+    job: 'miner',
     requires: ['ceramics'],
   },
   potterykiln: {
@@ -128,6 +139,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     costMultiplier: 1.2,
     consumes: { clay: 2, charcoal: 1 },
     production: { pottery: 1 },
+    job: 'artisan',
     requires: ['ceramics'],
   },
   warehouse: {

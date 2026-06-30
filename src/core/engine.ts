@@ -7,6 +7,7 @@ import { createInitialState } from './state';
 import { EventBus, GameEvents } from './eventBus';
 import type { GameSystem } from './systems/types';
 import { ActionTypes } from './systems/types';
+import type { JobId } from './state';
 import type { ResourceSystem } from './systems/resourceSystem';
 import type { BuildingSystem } from './systems/buildingSystem';
 import type { TechSystem } from './systems/techSystem';
@@ -101,11 +102,11 @@ export class GameEngine {
         break;
       }
       case ActionTypes.ALLOCATE_WORKER: {
-        this.findSystem<WorkerSystem>('worker')!.allocate(this.state, payload?.job as 'farmland' | 'lumber');
+        this.findSystem<WorkerSystem>('worker')!.allocate(this.state, payload?.job as JobId);
         break;
       }
       case ActionTypes.UNALLOCATE_WORKER: {
-        this.findSystem<WorkerSystem>('worker')!.unallocate(this.state, payload?.job as 'farmland' | 'lumber');
+        this.findSystem<WorkerSystem>('worker')!.unallocate(this.state, payload?.job as JobId);
         break;
       }
     }
