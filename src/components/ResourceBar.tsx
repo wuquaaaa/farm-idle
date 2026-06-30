@@ -14,6 +14,7 @@ const DISPLAY: { key: keyof GameState['resources']; icon: string; always?: boole
   { key: 'clay',  icon: '🟤' },
   { key: 'pottery', icon: '🏺' },
   { key: 'culture', icon: '📜' },
+  { key: 'beam', icon: '🪚' },
 ];
 
 export function ResourceBar({ state }: Props) {

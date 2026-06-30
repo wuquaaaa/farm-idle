@@ -78,4 +78,10 @@ export const RESOURCES: Record<string, ResourceDef> = {
     icon: '📜',
     description: '读书人在私塾治学积累的学问，用于研究科技',
   },
+  beam: {
+    id: 'beam',
+    name: '梁',
+    icon: '🪚',
+    description: '木工坊将木材加工成梁柱，营建高级建筑所需',
+  },
 };

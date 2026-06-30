@@ -137,6 +137,7 @@ function getResourceName(id: string): string {
     clay: '黏土',
     pottery: '陶器',
     culture: '文化',
+    beam: '梁',
   };
   return names[id] ?? id;
 }

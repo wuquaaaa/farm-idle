@@ -10,6 +10,7 @@ import type { GameSystem } from './types';
 import { BUILDINGS, getBuildingCost, canAffordBuilding } from '../../data/buildings';
 import { getTechMultiplier } from '../../data/techs';
 import { getSeasonMultiplier } from '../../data/calendar';
+import { getHappinessMultiplier } from '../../data/happiness';
 import type { ResourceSystem } from './resourceSystem';
 
 const TOOL_WEAR_RATE = 0.02;  // 每座 toolBoost 建筑每秒磨损的农具
@@ -68,6 +69,7 @@ export class BuildingSystem implements GameSystem {
       if (!this.isUnlocked(def.id, state)) continue;
       jobBuildings[def.job] = (jobBuildings[def.job] ?? 0) + bs.count;
     }
+    const happyMult = getHappinessMultiplier(state);
     const laborMult = (job: string | undefined): number => {
       if (!job) return 1;
       const bcount = jobBuildings[job] ?? 0;
@@ -90,7 +92,8 @@ export class BuildingSystem implements GameSystem {
         getTechMultiplier(state, 'multiply_production', def.id)
         * getSeasonMultiplier(state, isConverter)
         * tf
-        * laborMult(def.job);
+        * laborMult(def.job)
+        * happyMult;
 
       if (isConverter) {
         // —— 加工建筑：按瓶颈比例运转 ——

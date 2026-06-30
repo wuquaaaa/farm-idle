@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import type { GameState } from '../core/state';
 import { getMaxStorage } from '../core/systems/resourceSystem';
+import { getHappiness } from '../data/happiness';
 
 interface Props {
   state: GameState;
@@ -28,6 +29,7 @@ const ROWS: RowDef[] = [
   { key: 'clay',  icon: '🟤', label: '黏土' },
   { key: 'pottery', icon: '🏺', label: '陶器' },
   { key: 'culture', icon: '📜', label: '文化' },
+  { key: 'beam', icon: '🪚', label: '梁' },
 ];
 
 export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
@@ -102,6 +104,16 @@ export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
           </div>
         );
       })}
+
+      {/* 民心 */}
+      <div className="border-t border-stone-100 pt-3 mt-1">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-stone-500">🙂 民心</span>
+          <span className={`font-semibold ${getHappiness(state) >= 100 ? 'text-farm-600' : 'text-red-500'}`}>
+            {getHappiness(state).toFixed(0)}%
+          </span>
+        </div>
+      </div>
 
       {/* 帮工信息 */}
       <div className="border-t border-stone-100 pt-3 mt-1">

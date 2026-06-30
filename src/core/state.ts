@@ -32,6 +32,7 @@ export interface Resources {
   clay: ResourceState;         // 黏土
   pottery: ResourceState;      // 陶器（营建仓廪）
   culture: ResourceState;      // 文化（学问点，研究科技）
+  beam: ResourceState;         // 梁（精炼木材，营建高级建筑）
 }
 
 export interface Buildings {
@@ -49,6 +50,7 @@ export interface Buildings {
   granary: BuildingState;
   hut: BuildingState;
   academy: BuildingState;      // 私塾：读书人产文化
+  carpenter: BuildingState;    // 木工坊：木→梁
 }
 
 export interface Techs {
@@ -94,7 +96,7 @@ export interface GameState {
 
 export function createInitialState(): GameState {
   return {
-    version: 9,
+    version: 10,
     resources: {
       grain: { amount: 0, totalEarned: 0, perSecond: 0 },
       wood: { amount: 0, totalEarned: 0, perSecond: 0 },
@@ -107,6 +109,7 @@ export function createInitialState(): GameState {
       clay: { amount: 0, totalEarned: 0, perSecond: 0 },
       pottery: { amount: 0, totalEarned: 0, perSecond: 0 },
       culture: { amount: 0, totalEarned: 0, perSecond: 0 },
+      beam: { amount: 0, totalEarned: 0, perSecond: 0 },
     },
     buildings: {
       farmland: { count: 0 },
@@ -123,6 +126,7 @@ export function createInitialState(): GameState {
       granary: { count: 0 },
       hut: { count: 0 },
       academy: { count: 0 },
+      carpenter: { count: 0 },
     },
     techs: {
       improvedSeeds: { unlocked: false },
