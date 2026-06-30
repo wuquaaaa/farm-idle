@@ -72,4 +72,10 @@ export const RESOURCES: Record<string, ResourceDef> = {
     icon: '🏺',
     description: '陶窑以黏土配木炭烧制，用于营建仓廪、扩大储量',
   },
+  culture: {
+    id: 'culture',
+    name: '文化',
+    icon: '📜',
+    description: '读书人在私塾治学积累的学问，用于研究科技',
+  },
 };

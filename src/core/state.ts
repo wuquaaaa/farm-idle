@@ -31,6 +31,7 @@ export interface Resources {
   tools: ResourceState;        // 农具（装备增产，磨损消耗）
   clay: ResourceState;         // 黏土
   pottery: ResourceState;      // 陶器（营建仓廪）
+  culture: ResourceState;      // 文化（学问点，研究科技）
 }
 
 export interface Buildings {
@@ -47,6 +48,7 @@ export interface Buildings {
   warehouse: BuildingState;    // 仓：陶器→扩储量
   granary: BuildingState;
   hut: BuildingState;
+  academy: BuildingState;      // 私塾：读书人产文化
 }
 
 export interface Techs {
@@ -70,12 +72,14 @@ export interface Stats {
   clickPower: number;
 }
 
-export type JobId = 'farmer' | 'woodcutter' | 'miner' | 'artisan';
+export type JobId = 'farmer' | 'woodcutter' | 'miner' | 'artisan' | 'scholar';
 
 export interface Workers {
   count: number;
   allocation: Record<JobId, number>;  // 各岗位分配的人数
   foodPerSec: number;
+  growthProgress: number;             // 人口自然增长进度（秒）
+  hungerTimer: number;                // 持续饥荒计时（秒）
 }
 
 export interface GameState {
@@ -90,7 +94,7 @@ export interface GameState {
 
 export function createInitialState(): GameState {
   return {
-    version: 8,
+    version: 9,
     resources: {
       grain: { amount: 0, totalEarned: 0, perSecond: 0 },
       wood: { amount: 0, totalEarned: 0, perSecond: 0 },
@@ -102,6 +106,7 @@ export function createInitialState(): GameState {
       tools: { amount: 0, totalEarned: 0, perSecond: 0 },
       clay: { amount: 0, totalEarned: 0, perSecond: 0 },
       pottery: { amount: 0, totalEarned: 0, perSecond: 0 },
+      culture: { amount: 0, totalEarned: 0, perSecond: 0 },
     },
     buildings: {
       farmland: { count: 0 },
@@ -117,6 +122,7 @@ export function createInitialState(): GameState {
       warehouse: { count: 0 },
       granary: { count: 0 },
       hut: { count: 0 },
+      academy: { count: 0 },
     },
     techs: {
       improvedSeeds: { unlocked: false },
@@ -132,8 +138,10 @@ export function createInitialState(): GameState {
     },
     workers: {
       count: 0,
-      allocation: { farmer: 0, woodcutter: 0, miner: 0, artisan: 0 },
+      allocation: { farmer: 0, woodcutter: 0, miner: 0, artisan: 0, scholar: 0 },
       foodPerSec: 0.1,
+      growthProgress: 0,
+      hungerTimer: 0,
     },
     calendar: {
       totalDays: 0,

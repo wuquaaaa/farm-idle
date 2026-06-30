@@ -1,6 +1,6 @@
 // ============================================================
 // 科技定义 —— 农耕学问树
-//   基础学问消耗「纸」，高深学问消耗「书籍」
+//   最早期用原料(粮/木)，前期用文化，后期文化+纸/书籍
 // ============================================================
 
 import type { GameState } from '../core/state';
@@ -28,7 +28,7 @@ export interface TechDef {
 }
 
 export const TECHS: Record<string, TechDef> = {
-  // —— 基础学问：消耗纸 ——
+  // —— 最早期：原料即可研究 ——
   improvedSeeds: {
     id: 'improvedSeeds',
     name: '良种培育',
@@ -36,14 +36,6 @@ export const TECHS: Record<string, TechDef> = {
     icon: '🌿',
     cost: { grain: 200 },
     effects: [{ type: 'multiply_click', target: 'grain', multiplier: 2 }],
-  },
-  cropRotation: {
-    id: 'cropRotation',
-    name: '轮作法',
-    description: '轮替耕种，农田产量 ×2',
-    icon: '🔄',
-    cost: { paper: 20 },
-    effects: [{ type: 'multiply_production', target: 'farmland', multiplier: 2 }],
   },
   sharpAxe: {
     id: 'sharpAxe',
@@ -53,29 +45,25 @@ export const TECHS: Record<string, TechDef> = {
     cost: { wood: 150 },
     effects: [{ type: 'multiply_production', target: 'woodcamp', multiplier: 2 }],
   },
+  // —— 前期：消耗文化 ——
+  cropRotation: {
+    id: 'cropRotation',
+    name: '轮作法',
+    description: '轮替耕种，农田产量 ×2',
+    icon: '🔄',
+    cost: { culture: 30 },
+    effects: [{ type: 'multiply_production', target: 'farmland', multiplier: 2 }],
+  },
   ceramics: {
     id: 'ceramics',
     name: '陶冶术',
-    description: '开启储量链：解锁 取土场、陶窑、仓；陶器可营建仓廪扩大储量',
+    description: '开启储量链：解锁 取土场、陶窑、仓',
     icon: '🏺',
-    cost: { paper: 40 },
+    cost: { culture: 60 },
     effects: [
       { type: 'unlock_building', target: 'claypit' },
       { type: 'unlock_building', target: 'potterykiln' },
       { type: 'unlock_building', target: 'warehouse' },
-    ],
-  },
-  ironworking: {
-    id: 'ironworking',
-    name: '冶铁术',
-    description: '开启铁矿链：解锁 炭窑、矿场、冶铁炉、铁匠铺；农具可装备农田林场增产',
-    icon: '🛠️',
-    cost: { paper: 60 },
-    effects: [
-      { type: 'unlock_building', target: 'charcoalkiln' },
-      { type: 'unlock_building', target: 'mine' },
-      { type: 'unlock_building', target: 'ironfurnace' },
-      { type: 'unlock_building', target: 'smithy' },
     ],
   },
   irrigation: {
@@ -83,43 +71,56 @@ export const TECHS: Record<string, TechDef> = {
     name: '灌溉术',
     description: '引水灌田，农田产量再 ×2',
     icon: '💧',
-    cost: { paper: 50 },
+    cost: { culture: 80 },
     requires: ['cropRotation'],
     effects: [{ type: 'multiply_production', target: 'farmland', multiplier: 2 }],
   },
+  ironworking: {
+    id: 'ironworking',
+    name: '冶铁术',
+    description: '开启铁矿链：解锁 炭窑、矿场、冶铁炉、铁匠铺；农具可装备增产',
+    icon: '🛠️',
+    cost: { culture: 100 },
+    effects: [
+      { type: 'unlock_building', target: 'charcoalkiln' },
+      { type: 'unlock_building', target: 'mine' },
+      { type: 'unlock_building', target: 'ironfurnace' },
+      { type: 'unlock_building', target: 'smithy' },
+    ],
+  },
+  // —— 后期：文化 + 纸/书籍 ——
   printing: {
     id: 'printing',
     name: '印刷术',
     description: '雕版印刷，解锁书坊，纸可印制成书籍',
     icon: '📚',
-    cost: { paper: 80 },
+    cost: { culture: 120, paper: 30 },
     effects: [{ type: 'unlock_building', target: 'bookbindery' }],
-  },
-  // —— 高深学问：消耗书籍 ——
-  intensiveFarming: {
-    id: 'intensiveFarming',
-    name: '精耕细作',
-    description: '集约耕作，农田产量再 ×2',
-    icon: '🌾',
-    cost: { books: 10 },
-    requires: ['irrigation', 'printing'],
-    effects: [{ type: 'multiply_production', target: 'farmland', multiplier: 2 }],
   },
   paperCraft: {
     id: 'paperCraft',
     name: '造纸改良',
     description: '改良工艺，造纸坊产量 ×2',
     icon: '📜',
-    cost: { books: 12 },
+    cost: { culture: 120, paper: 40 },
     requires: ['printing'],
     effects: [{ type: 'multiply_production', target: 'papermill', multiplier: 2 }],
+  },
+  intensiveFarming: {
+    id: 'intensiveFarming',
+    name: '精耕细作',
+    description: '集约耕作，农田产量再 ×2',
+    icon: '🌾',
+    cost: { culture: 150, books: 8 },
+    requires: ['irrigation', 'printing'],
+    effects: [{ type: 'multiply_production', target: 'farmland', multiplier: 2 }],
   },
   blastFurnace: {
     id: 'blastFurnace',
     name: '高炉炼铁',
     description: '改良炉灶，冶铁炉产量 ×2',
     icon: '🔥',
-    cost: { books: 15 },
+    cost: { culture: 150, books: 10 },
     requires: ['ironworking', 'printing'],
     effects: [{ type: 'multiply_production', target: 'ironfurnace', multiplier: 2 }],
   },

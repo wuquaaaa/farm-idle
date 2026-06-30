@@ -89,10 +89,6 @@ export class GameEngine {
         this.findSystem<TechSystem>('tech')!.unlockTech(this.state, payload?.techId as string);
         break;
       }
-      case ActionTypes.HIRE_WORKER: {
-        this.findSystem<WorkerSystem>('worker')!.hireWorker(this.state);
-        break;
-      }
       case ActionTypes.CHOP_WOOD: {
         const rs = this.findSystem<ResourceSystem>('resource')!;
         if (rs.spendResource(this.state, 'grain', 100)) {

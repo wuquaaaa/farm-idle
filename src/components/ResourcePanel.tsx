@@ -27,6 +27,7 @@ const ROWS: RowDef[] = [
   { key: 'tools', icon: '🛠️', label: '农具' },
   { key: 'clay',  icon: '🟤', label: '黏土' },
   { key: 'pottery', icon: '🏺', label: '陶器' },
+  { key: 'culture', icon: '📜', label: '文化' },
 ];
 
 export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
@@ -112,7 +113,7 @@ export function ResourcePanel({ state, onSave, onLoad, onReset }: Props) {
         </div>
         <div className="text-xs text-stone-400 mt-0.5">
           空闲 {workers.count - (workers.allocation.farmer + workers.allocation.woodcutter + workers.allocation.miner + workers.allocation.artisan)} · 
-          农 {workers.allocation.farmer} · 樵 {workers.allocation.woodcutter} · 矿 {workers.allocation.miner} · 匠 {workers.allocation.artisan}
+          农 {workers.allocation.farmer} · 樵 {workers.allocation.woodcutter} · 矿 {workers.allocation.miner} · 匠 {workers.allocation.artisan} · 读 {workers.allocation.scholar}
         </div>
         {workers.count > 0 && (
           <div className="text-xs text-red-400 mt-0.5">

@@ -1,5 +1,6 @@
 import type { GameState, JobId } from '../core/state';
 import { ActionTypes } from '../core/systems/types';
+import { GROWTH_INTERVAL } from '../core/systems/workerSystem';
 
 interface Props {
   state: GameState;
@@ -11,6 +12,7 @@ const JOB_META: { id: JobId; icon: string; label: string; hint: string }[] = [
   { id: 'woodcutter', icon: '🌲', label: '樵夫', hint: '林场增产' },
   { id: 'miner',      icon: '⛏️', label: '矿工', hint: '矿场 / 取土场增产' },
   { id: 'artisan',    icon: '🔨', label: '工匠', hint: '各作坊增产' },
+  { id: 'scholar',    icon: '📖', label: '读书人', hint: '私塾增产（文化）' },
 ];
 
 export function WorkerView({ state, dispatch }: Props) {
@@ -18,19 +20,40 @@ export function WorkerView({ state, dispatch }: Props) {
   const capacity = state.buildings.hut?.count ?? 0;
   const allocated = JOB_META.reduce((s, j) => s + (w.allocation[j.id] ?? 0), 0);
   const idle = w.count - allocated;
-  const canHire = capacity > 0 && w.count < capacity;
+  const famine = w.hungerTimer > 0;
+  const growing = w.count < capacity && !famine;
+  const growthPct = Math.min(100, (w.growthProgress / GROWTH_INTERVAL) * 100);
 
   return (
     <div className="space-y-3">
       <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="font-semibold text-stone-800">👨‍🌾 帮工</h2>
+          <h2 className="font-semibold text-stone-800">👨‍🌾 丁口</h2>
           <span className="text-sm text-stone-400">{w.count}/{capacity} 人</span>
         </div>
         <p className="text-xs text-stone-400">
-          每人每秒吃 {w.foodPerSec.toFixed(1)} 🌾；分配到岗位可给对应建筑增产（满员约 1 人/座 → ×2）
+          每人每秒吃 {w.foodPerSec.toFixed(1)} 🌾；粮食充裕且有住房，丁口会自然增长
         </p>
-        <div className="text-xs text-stone-500 mt-1">空闲 <b>{idle}</b> 人</div>
+
+        {/* 状态：繁衍 / 饥荒 / 满员 */}
+        {famine ? (
+          <div className="mt-2 text-xs text-red-500 font-medium">
+            ⚠️ 闹饥荒！粮食见底，再不补粮要饿走人了（{w.hungerTimer.toFixed(0)}s）
+          </div>
+        ) : growing ? (
+          <div className="mt-2">
+            <div className="text-xs text-stone-500 mb-1">繁衍中…（粮足且有空房）</div>
+            <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+              <div className="h-full bg-farm-400 rounded-full transition-all" style={{ width: `${growthPct}%` }} />
+            </div>
+          </div>
+        ) : capacity > 0 && w.count >= capacity ? (
+          <div className="mt-2 text-xs text-stone-400">住房已满，去「田园」建小屋可增丁</div>
+        ) : (
+          <div className="mt-2 text-xs text-stone-400">需先建小屋提供住房，并备足粮食</div>
+        )}
+
+        <div className="text-xs text-stone-500 mt-2">空闲 <b>{idle}</b> 人</div>
       </div>
 
       {w.count > 0 && (
@@ -61,18 +84,6 @@ export function WorkerView({ state, dispatch }: Props) {
             );
           })}
         </div>
-      )}
-
-      <button
-        onClick={() => dispatch(ActionTypes.HIRE_WORKER)}
-        disabled={!canHire}
-        className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${canHire ? 'bg-farm-500 text-white hover:bg-farm-600 active:scale-[0.98] shadow-sm' : 'bg-stone-100 text-stone-400'}`}
-      >
-        {capacity === 0 ? '需要先建造小屋' : w.count >= capacity ? '小屋已满' : '招募帮工（免费）'}
-      </button>
-
-      {capacity === 0 && (
-        <div className="text-xs text-stone-400 text-center">去「田园」用 🪵5 建造小屋，提供帮工空位</div>
       )}
     </div>
   );

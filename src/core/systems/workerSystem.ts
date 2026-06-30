@@ -1,15 +1,18 @@
 // ============================================================
-// WorkerSystem — 帮工招募、岗位分配、吃粮
-// 工人不再直接产出，而是通过 BuildingSystem 按「岗位工人/建筑」给对应建筑增产
+// WorkerSystem — 丁口：自动增长、口粮硬约束、岗位分配
+// 不再手动招募：粮食盈余 + 有住房则自然增长；持续饥荒会流失人口
 // ============================================================
 
 import type { GameState, JobId } from '../state';
 import type { EventBus } from '../eventBus';
-import { GameEvents } from '../eventBus';
 import type { GameSystem } from './types';
 import type { ResourceSystem } from './resourceSystem';
 
-export const JOBS: JobId[] = ['farmer', 'woodcutter', 'miner', 'artisan'];
+export const JOBS: JobId[] = ['farmer', 'woodcutter', 'miner', 'artisan', 'scholar'];
+
+export const GROWTH_INTERVAL = 12;      // 每 12 秒自然增长 1 丁口
+const GROWTH_FOOD_BUFFER = 50;   // 粮食需高于此值才增长
+const STARVE_DELAY = 6;          // 持续饥荒 6 秒流失 1 丁口
 
 export class WorkerSystem implements GameSystem {
   id = 'worker';
@@ -26,13 +29,39 @@ export class WorkerSystem implements GameSystem {
 
   tick(dt: number, state: GameState): void {
     if (!this.resourceSystem) return;
-    if (state.workers.count === 0) return;
+    const w = state.workers;
+    const cap = this.getCapacity(state);
+    const grain = state.resources.grain;
 
-    // 口粮：所有帮工每秒吃粮
-    const food = state.workers.count * state.workers.foodPerSec;
-    if (food > 0) {
-      this.resourceSystem.spendResource(state, 'grain', food * dt);
-      state.resources.grain.perSecond -= food;
+    // —— 口粮 + 饥荒 ——
+    if (w.count > 0) {
+      const foodRate = w.count * w.foodPerSec;
+      const need = foodRate * dt;
+      grain.perSecond -= foodRate;
+      if (grain.amount >= need) {
+        this.resourceSystem.spendResource(state, 'grain', need);
+        w.hungerTimer = 0;
+      } else {
+        if (grain.amount > 0) this.resourceSystem.spendResource(state, 'grain', grain.amount);
+        w.hungerTimer += dt;
+        if (w.hungerTimer >= STARVE_DELAY) {
+          this.loseOne(state);
+          w.hungerTimer = 0;
+        }
+      }
+    } else {
+      w.hungerTimer = 0;
+    }
+
+    // —— 自然增长：有空房 + 粮食充裕 ——
+    if (w.count < cap && grain.amount > GROWTH_FOOD_BUFFER && w.hungerTimer === 0) {
+      w.growthProgress += dt;
+      while (w.growthProgress >= GROWTH_INTERVAL && w.count < cap) {
+        w.count++;
+        w.growthProgress -= GROWTH_INTERVAL;
+      }
+    } else {
+      w.growthProgress = Math.max(0, w.growthProgress - dt);
     }
   }
 
@@ -52,14 +81,6 @@ export class WorkerSystem implements GameSystem {
     return state.workers.count - this.getAllocated(state);
   }
 
-  /** 招募帮工：免费，只要还有空余小屋名额 */
-  hireWorker(state: GameState): boolean {
-    if (state.workers.count >= this.getCapacity(state)) return false;
-    state.workers.count++;
-    this.events?.emit(GameEvents.BUILDING_BUILT, { buildingId: 'worker' });
-    return true;
-  }
-
   allocate(state: GameState, job: JobId): boolean {
     if (this.getIdleCount(state) <= 0) return false;
     if (!JOBS.includes(job)) return false;
@@ -71,5 +92,22 @@ export class WorkerSystem implements GameSystem {
     if ((state.workers.allocation[job] ?? 0) <= 0) return false;
     state.workers.allocation[job]--;
     return true;
+  }
+
+  /** 流失 1 丁口（饥荒），必要时从分配最多的岗位撤回 */
+  private loseOne(state: GameState): void {
+    const w = state.workers;
+    if (w.count <= 0) return;
+    w.count--;
+    let allocated = this.getAllocated(state);
+    while (allocated > w.count) {
+      let maxJob: JobId = JOBS[0];
+      for (const j of JOBS) {
+        if ((w.allocation[j] ?? 0) > (w.allocation[maxJob] ?? 0)) maxJob = j;
+      }
+      if ((w.allocation[maxJob] ?? 0) <= 0) break;
+      w.allocation[maxJob]--;
+      allocated--;
+    }
   }
 }

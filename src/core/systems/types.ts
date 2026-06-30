@@ -22,7 +22,6 @@ export const ActionTypes = {
   CHOP_WOOD: 'action:chopWood',
   BUY_BUILDING: 'action:buyBuilding',
   UNLOCK_TECH: 'action:unlockTech',
-  HIRE_WORKER: 'action:hireWorker',
   ALLOCATE_WORKER: 'action:allocateWorker',
   UNALLOCATE_WORKER: 'action:unallocateWorker',
 } as const;

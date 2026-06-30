@@ -165,11 +165,21 @@ export const BUILDINGS: Record<string, BuildingDef> = {
   hut: {
     id: 'hut',
     name: '小屋',
-    description: '提供 1 个帮工空位，建好即可免费上工',
+    description: '提供 1 个住房名额，丁口随粮食盈余自然增长',
     icon: '🏠',
     baseCost: { wood: 5 },
     costMultiplier: 1.3,
     production: {},
+  },
+  academy: {
+    id: 'academy',
+    name: '私塾',
+    description: '每座每秒产出 0.3 文化，安排读书人可大幅增产',
+    icon: '📖',
+    baseCost: { wood: 40, grain: 60 },
+    costMultiplier: 1.2,
+    production: { culture: 0.3 },
+    job: 'scholar',
   },
 };
 

@@ -124,6 +124,7 @@ function getResourceName(id: string): string {
     tools: '🛠️',
     clay: '🟤',
     pottery: '🏺',
+    culture: '📜',
   };
   return names[id] ?? id;
 }

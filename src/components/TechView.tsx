@@ -105,6 +105,7 @@ function effectDescription(effect: { type: string; target: string; multiplier?: 
     claypit: '取土场',
     potterykiln: '陶窑',
     warehouse: '仓',
+    academy: '私塾',
     grain: '粮食收获',
     granary: '粮仓',
   };
@@ -135,6 +136,7 @@ function getResourceName(id: string): string {
     tools: '农具',
     clay: '黏土',
     pottery: '陶器',
+    culture: '文化',
   };
   return names[id] ?? id;
 }
