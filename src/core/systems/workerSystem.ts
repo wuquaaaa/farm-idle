@@ -7,12 +7,16 @@ import type { GameState, JobId } from '../state';
 import type { EventBus } from '../eventBus';
 import type { GameSystem } from './types';
 import type { ResourceSystem } from './resourceSystem';
+import { getSeasonMultiplier } from '../../data/calendar';
+import { getHappinessMultiplier } from '../../data/happiness';
+import { getTechMultiplier } from '../../data/techs';
 
 export const JOBS: JobId[] = ['farmer', 'woodcutter', 'miner', 'artisan', 'scholar'];
 
 export const GROWTH_INTERVAL = 12;      // 每 12 秒自然增长 1 丁口
 const GROWTH_FOOD_BUFFER = 50;   // 粮食需高于此值才增长
 const STARVE_DELAY = 6;          // 持续饥荒 6 秒流失 1 丁口
+const WOODCUT_RATE = 0.3;        // 每个樵夫每秒砍木
 
 export class WorkerSystem implements GameSystem {
   id = 'worker';
@@ -62,6 +66,20 @@ export class WorkerSystem implements GameSystem {
       }
     } else {
       w.growthProgress = Math.max(0, w.growthProgress - dt);
+    }
+
+    // —— 樵夫砍木（无林场，木材自动化靠派人）——
+    const woodcutters = w.allocation.woodcutter ?? 0;
+    if (woodcutters > 0) {
+      const mult =
+        getSeasonMultiplier(state, false)
+        * getHappinessMultiplier(state)
+        * getTechMultiplier(state, 'multiply_production', 'woodcutter');
+      const woodRate = woodcutters * WOODCUT_RATE * mult;
+      if (woodRate > 0) {
+        this.resourceSystem.addResource(state, 'wood', woodRate * dt);
+        state.resources.wood.perSecond += woodRate;
+      }
     }
   }
 

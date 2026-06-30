@@ -95,7 +95,7 @@ function TechCard({ tech, state, dispatch }: {
 function effectDescription(effect: { type: string; target: string; multiplier?: number }): string {
   const targets: Record<string, string> = {
     farmland: '农田',
-    woodcamp: '林场',
+    woodcutter: '樵夫砍木',
     papermill: '造纸坊',
     bookbindery: '书坊',
     charcoalkiln: '炭窑',

@@ -40,10 +40,10 @@ export const TECHS: Record<string, TechDef> = {
   sharpAxe: {
     id: 'sharpAxe',
     name: '利斧',
-    description: '锻造利斧，林场产量 ×2',
+    description: '锻造利斧，樵夫砍木 ×2',
     icon: '🪓',
     cost: { wood: 150 },
-    effects: [{ type: 'multiply_production', target: 'woodcamp', multiplier: 2 }],
+    effects: [{ type: 'multiply_production', target: 'woodcutter', multiplier: 2 }],
   },
   // —— 前期：消耗文化 ——
   cropRotation: {

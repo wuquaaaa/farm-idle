@@ -9,7 +9,7 @@ interface Props {
 
 const JOB_META: { id: JobId; icon: string; label: string; hint: string }[] = [
   { id: 'farmer',     icon: '🌱', label: '农夫', hint: '农田增产' },
-  { id: 'woodcutter', icon: '🌲', label: '樵夫', hint: '林场增产' },
+  { id: 'woodcutter', icon: '🪓', label: '樵夫', hint: '砍木（每人 +0.3 木/s）' },
   { id: 'miner',      icon: '⛏️', label: '矿工', hint: '矿场 / 取土场增产' },
   { id: 'artisan',    icon: '🔨', label: '工匠', hint: '各作坊增产' },
   { id: 'scholar',    icon: '📖', label: '读书人', hint: '私塾增产（文化）' },

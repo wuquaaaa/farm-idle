@@ -37,7 +37,6 @@ export interface Resources {
 
 export interface Buildings {
   farmland: BuildingState;
-  woodcamp: BuildingState;
   papermill: BuildingState;
   bookbindery: BuildingState;
   charcoalkiln: BuildingState; // 炭窑：木→炭
@@ -96,7 +95,7 @@ export interface GameState {
 
 export function createInitialState(): GameState {
   return {
-    version: 10,
+    version: 11,
     resources: {
       grain: { amount: 0, totalEarned: 0, perSecond: 0 },
       wood: { amount: 0, totalEarned: 0, perSecond: 0 },
@@ -113,7 +112,6 @@ export function createInitialState(): GameState {
     },
     buildings: {
       farmland: { count: 0 },
-      woodcamp: { count: 0 },
       papermill: { count: 0 },
       bookbindery: { count: 0 },
       charcoalkiln: { count: 0 },

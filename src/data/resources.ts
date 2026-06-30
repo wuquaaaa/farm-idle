@@ -20,7 +20,7 @@ export const RESOURCES: Record<string, ResourceDef> = {
     id: 'wood',
     name: '木材',
     icon: '🪵',
-    description: '林场或砍树获得，建造、造纸与烧炭所需',
+    description: '派樵夫砍木或亲手砍树获得，建造、造纸与烧炭所需',
   },
   paper: {
     id: 'paper',
@@ -57,7 +57,7 @@ export const RESOURCES: Record<string, ResourceDef> = {
     id: 'tools',
     name: '农具',
     icon: '🛠️',
-    description: '铁匠铺打造，装备于农田林场增产，但会持续磨损',
+    description: '铁匠铺打造，装备于农田/矿场增产，但会持续磨损',
   },
   // —— 储量链 ——
   clay: {

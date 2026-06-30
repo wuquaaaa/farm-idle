@@ -17,6 +17,8 @@ export interface BuildingDef {
   toolBoost?: boolean;
   /** 该建筑所属岗位：分配对应工人可增产（满员约 1 人/座 → ×2） */
   job?: JobId;
+  /** 渐进解锁条件（除前置科技外的额外显示条件） */
+  unlock?: (state: GameState) => boolean;
   requires?: string[];
 }
 
@@ -31,17 +33,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     production: { grain: 0.5 },
     toolBoost: true,
     job: 'farmer',
-  },
-  woodcamp: {
-    id: 'woodcamp',
-    name: '林场',
-    description: '伐木为业，每座每秒产出 0.3 木材',
-    icon: '🌲',
-    baseCost: { grain: 30 },
-    costMultiplier: 1.18,
-    production: { wood: 0.3 },
-    toolBoost: true,
-    job: 'woodcutter',
+    unlock: (s) => s.stats.totalClicks >= 10,
   },
   papermill: {
     id: 'papermill',
@@ -161,6 +153,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     baseCost: { wood: 30 },
     costMultiplier: 1.2,
     production: {},
+    unlock: (s) => (s.buildings.farmland?.count ?? 0) >= 1,
   },
   hut: {
     id: 'hut',
@@ -170,6 +163,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     baseCost: { wood: 5 },
     costMultiplier: 1.3,
     production: {},
+    unlock: (s) => s.stats.totalChops >= 1,
   },
   academy: {
     id: 'academy',
@@ -180,6 +174,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     costMultiplier: 1.2,
     production: { culture: 0.3 },
     job: 'scholar',
+    unlock: (s) => (s.buildings.farmland?.count ?? 0) >= 1,
   },
   carpenter: {
     id: 'carpenter',
@@ -191,6 +186,7 @@ export const BUILDINGS: Record<string, BuildingDef> = {
     consumes: { wood: 2 },
     production: { beam: 1 },
     job: 'artisan',
+    unlock: (s) => (s.buildings.farmland?.count ?? 0) >= 1,
   },
 };
 

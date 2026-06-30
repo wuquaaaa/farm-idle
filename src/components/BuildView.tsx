@@ -9,10 +9,12 @@ interface Props {
 }
 
 export function BuildView({ state, dispatch }: Props) {
-  // 前置科技未满足的建筑隐藏
-  const visible = Object.values(BUILDINGS).filter((b) =>
-    !b.requires || b.requires.every((techId) => state.techs[techId as keyof GameState['techs']]?.unlocked)
-  );
+  // 前置科技未满足、或渐进解锁条件未达成的建筑隐藏
+  const visible = Object.values(BUILDINGS).filter((b) => {
+    const techOk = !b.requires || b.requires.every((techId) => state.techs[techId as keyof GameState['techs']]?.unlocked);
+    const unlockOk = !b.unlock || b.unlock(state);
+    return techOk && unlockOk;
+  });
 
   return (
     <div className="grid grid-cols-2 gap-3">
